@@ -1,0 +1,36 @@
+#!/bin/bash
+
+#region Constantes
+DEVICE="SynPS/2 Synaptics TouchPad"
+DEVICE_DISABLED="0"
+DEVICE_ENABLED="1"
+#endregion
+
+#region Funciones
+_error() {
+    echo -e "\e[91m$1\e[m"
+    exit 1
+}
+
+_success() {
+    echo -e "\e[92m$1\e[m"
+}
+#endregion
+
+propiedades=`xinput list-props "$DEVICE" 2> /dev/null`
+if [[ $propiedades ]]; then
+    estado=`echo "$propiedades" | grep 'Device Enabled' | awk '{print $4}'`
+    case $estado in
+        $DEVICE_DISABLED)
+            xinput enable "$DEVICE"
+            _success 'Touchpad habilitado'
+            ;;
+        $DEVICE_ENABLED)
+            xinput disable "$DEVICE"
+            _success 'Touchpad deshabilitado'
+            ;;
+        *)  _error "Estado \"$estado\" no reconocido"
+    esac
+else
+    _error "\"$DEVICE\" no encontrado"
+fi

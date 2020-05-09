@@ -22,5 +22,4 @@ Scripts escritos en Bash.
 * **tam_deps**: Calcula el tamaño total de las dependencias de un paquete de Arch Linux.
     * *TODO* Tomar en cuenta los paquetes instalados.
 * **touchpad.sh**: Activa/desactiva el touchpad.
-    * *TODO* Revisar `xinput` para obtener la id automáticamente.
 * **wifi**: Wrapper para `wifi-menu` indicando la interfaz y al terminar el programa consultar la dirección IP resultante.
