@@ -45,7 +45,6 @@ terminar() {
         echo -e "${CLR_ROJO}Denegando$CLR_FIN puerto $CLR_AMAR$port$CLR_FIN..."
         ufw deny "$port" &> /dev/null
     done
-    echo
 }
 #endregion
 
