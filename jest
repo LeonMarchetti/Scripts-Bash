@@ -1,0 +1,10 @@
+#!/bin/bash
+
+dir="__tests__"
+ext="tsx"
+[[ -d $dir ]] || mkdir $dir
+for archivo in *.$ext; do
+    nombre=$(echo $archivo | cut -f 1 -d .)
+    salida="$dir/$nombre.test.$ext"
+    [[ -f "$salida" ]] || touch "$salida"
+done

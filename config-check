@@ -1,0 +1,15 @@
+#!/bin/bash
+
+function ls_grep {
+    # Para conservar los saltos de linea
+    IFS=
+    grep_out=$(ls -1a $1 | grep $2)
+    if [ "$grep_out" ] ; then
+        echo -e "\e[93m$1:\e[m"
+        echo $grep_out
+    fi
+}
+
+ls_grep ${HOME} $1
+ls_grep ${XDG_CONFIG_HOME} $1
+ls_grep ${XDG_DATA_HOME} $1

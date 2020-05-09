@@ -1,0 +1,90 @@
+#!/bin/bash
+if [ $EUID != 0 ]; then
+    sudo "$0" "$@"
+    exit $?
+fi
+
+#region Colores
+CLR_AMAR="\e[93m"
+CLR_VERD="\e[92m"
+CLR_ROJO="\e[91m"
+CLR_FIN="\e[m"
+#endregion
+
+#region Funciones
+iniciar_servicio() {
+    if systemctl is-active -q "$1"; then
+        echo -e "El servicio $CLR_AMAR$1$CLR_FIN ya estaba iniciado, ignorando..."
+    else
+        echo -e "${CLR_VERD}Iniciando$CLR_FIN servicio $CLR_AMAR$1$CLR_FIN..."
+        systemctl start "$1"
+        servicios+=($1)
+    fi
+}
+
+permitir_puerto() {
+    case `ufw status | grep "$1 [^\(]" | grep -Eo "(ALLOW|DENY)"` in
+        "ALLOW") echo -e "El puerto $CLR_AMAR$1$CLR_FIN ya estaba permitido, ignorando..." ;;
+        "DENY")
+            echo -e "${CLR_VERD}Permitiendo$CLR_FIN puerto $CLR_AMAR$1$CLR_FIN..."
+            ufw allow "$1" &> /dev/null
+            puertos+=($1)
+            ;;
+        *) echo -e "${CLR_ROJO}Estado de puerto $CLR_AMAR$1$CLR_ROJO desconocido$CLR_FIN" ;;
+    esac
+}
+
+terminar() {
+    echo -en "\r"
+    for serv in ${servicios[*]}; do
+        echo -e "${CLR_ROJO}Deteniendo$CLR_FIN servicio $CLR_AMAR$serv$CLR_FIN..."
+        systemctl stop "$serv"
+    done
+
+    for port in ${puertos[*]}; do
+        echo -e "${CLR_ROJO}Denegando$CLR_FIN puerto $CLR_AMAR$port$CLR_FIN..."
+        ufw deny "$port" &> /dev/null
+    done
+    echo
+}
+#endregion
+
+# Bandera para indicar si el argumento es un "SERVICIO" o un "PUERTO" durante
+# el procesamiento de los argumentos.
+flag=
+# Listas de servicios y puertos activados por este script. Al terminar el
+# programa se detienen y cierran los servicios y puertos en estas listas.
+servicios=()
+puertos=()
+
+while [ -n "$1" ]; do
+    case "$1" in
+        -s) flag="SERVICIO" ;;
+        -p) flag="PUERTO" ;;
+        -*)
+            echo -e "${CLR_ROJO}Opción desconocida $CLR_FIN$1"
+            flag=
+            ;;
+        *)
+            case $flag in
+                SERVICIO) iniciar_servicio $1 ;;
+                PUERTO) permitir_puerto $1 ;;
+                *) echo -e "${CLR_ROJO}Ignorando argumento $CLR_FIN$1"
+            esac
+            ;;
+    esac
+    shift
+done
+
+# Capturar señal de C+c y cierre de la terminal
+trap terminar SIGHUP EXIT
+
+echo
+echo -n "Esperando interrupción..."
+
+while :; do
+    read -t 1 -n 1 -s PASSWORD
+    if [ $? = 0 ] ; then
+        break
+    fi
+done

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+comandos=()
+directorios=()
+titulos=()
+
+for i in {1..2}; do
+    comando=${comandos[$i]}
+    directorio=${directorios[$i]}
+    titulo=${titulos[$i]}
+    gnome-terminal --tab --working-directory=$directorio -t $titulo -- $comando
+done
+
+# Ejecuto el primer comando en la pestaña actual
+cd ${directorios[0]}
+${comandos[0]}

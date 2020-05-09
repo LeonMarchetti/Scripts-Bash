@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#region colores
+CLR_VERD="\e[92m"
+CLR_AMAR="\e[93m"
+CLR_ROSA="\e[95m"
+CLR_CYAN="\e[96m"
+CLR_FIN="\e[m"
+#endregion
+
+if [[ $1 ]]; then
+    if [[ $2 ]]; then
+        echo -e "$CLR_AMAR$1$CLR_FIN = [$CLR_VERD$2$CLR_FIN]"
+    else
+        echo -e "$CLR_ROSA$1$CLR_FIN"
+    fi
+else
+    echo -e "$CLR_CYAN"CHECKPOINT"$CLR_FIN"
+fi
+

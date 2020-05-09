@@ -1,0 +1,17 @@
+#!/bin/bash
+
+if [ $EUID != 0 ]; then
+    sudo "$0" "$@"
+    exit $?
+fi
+
+wifi-menu "wlp0s20u3"
+
+if [ !$? ]; then
+    echo -e "\e[93mDirección IP:\e[m"
+    until ip -br -c a | grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | grep -e ^192. -e ^10. -e ^168.
+    do
+        sleep 0.1
+    done
+fi
+

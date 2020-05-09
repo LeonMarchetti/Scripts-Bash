@@ -1,0 +1,30 @@
+#!/bin/bash
+
+if [[ -z $1 ]]; then
+    dir=*
+else
+    dir=$1/*
+fi
+
+du -csh $dir | sort -h | awk '
+    BEGIN {
+        CLR_TOTAL = "\033[30m\033[42m";
+        CLR_GIGAS = "\033[91m";
+        CLR_SIZE  = "\033[93m";
+        CLR_END   = "\033[m";
+    }
+    $1 !~ /G/ {
+        COLOR = CLR_SIZE
+    }
+    $1  ~ /G/ {
+        COLOR = CLR_GIGAS
+    }
+    $2 !~ /^total$/ {
+        n = split($2, a, "/");
+        printf "%s%s%s\t%s\n",
+            COLOR, $1, CLR_END, a[n]
+    }
+    $2 ~ /^total$/ {
+        print CLR_TOTAL $0 CLR_END
+    }
+'

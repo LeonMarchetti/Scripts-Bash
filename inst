@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# Instala un paquete en Arch Linux. Primero trata de instalar con `sudo pacman
+# -S`, si no puede trata con `yay -S`.
+# Si se mezclan dos paquetes de los repositorios oficiales y de la AUR primero
+# instala los paquetes de los oficiales y luego de la AUR.
+
+_echo() {
+    echo -e "\e[92m$1\e[m"
+}
+
+error() {
+    echo -e "\e[91m$1\e[m";
+    exit 1
+}
+
+if [[ -z $1 ]]; then
+    error "No se especificaron paquetes"
+fi
+
+if pacman -Si "$@" > /dev/null 2>&1; then
+    _echo "Paquetes encontrados en repositorios oficiales"
+    sudo pacman -S "$@"
+else
+    if yay -Si "$@" > /dev/null 2>&1; then
+        _echo "Paquetes encontrados en AUR"
+        yay -S "$@"
+    else
+        error "Paquete no encontrado"
+    fi
+fi

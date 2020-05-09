@@ -1,0 +1,77 @@
+#!/bin/bash
+
+# Convierte un valor en bytes en su mayor representación según su unidad.
+# Fuente: https://stackoverflow.com/questions/19059944/kb-to-mb-using-bash
+function bytes_for_humans {
+    local -i bytes=$1;
+    if [[ $bytes -lt 1024 ]]; then
+        echo "${bytes}B"
+    elif [[ $bytes -lt 1048576 ]]; then
+        echo "$(( (bytes + 1023)/1024 ))KiB"
+    else
+        echo "$(( (bytes + 1048575)/1048576 ))MiB"
+    fi
+}
+
+entrada=$(yay -Si $1)
+# $? devuelve 0/1
+
+if [ $? -eq 1 ]; then
+    echo -e "Paquete '$1' \e[91mno encontrado\e[m"
+    exit 1
+fi
+
+# echo -e "\e[91m$entrada\e[m"
+
+lista_paquetes=`$entrada | awk '
+    BEGIN {
+        FS=":"
+    }
+    $1 ~ /Depends On/ {
+        split($2, a, " ")
+        for (i = 1; i <= length(a); i++) {
+            split(a[i], b, "[>=]")
+            print b[1]
+        }
+    }
+'`
+
+# echo $lista_paquetes
+
+patron_size="([0-9.]+) ([GKM])iB"
+tamano_total=0
+
+for pack in $lista_paquetes; do
+    # echo -e "\e[93m$pack\e[m:"
+    size=`pacman -Si $pack | awk '
+        BEGIN { FS=":" }
+        $1 ~ /instalación/ {
+            gsub("^ *", "", $2)
+            gsub(",", ".", $2)
+            print $2
+        }
+    '`
+
+    if [[ $size ]]; then
+        # echo -e "\t\e[92m$size\e[m"
+        if [[ $size =~ $patron_size ]]; then
+            magnitud=${BASH_REMATCH[1]}
+            unidad=${BASH_REMATCH[2]}
+            case $unidad in
+                G) expr="$magnitud * 1024 * 1024 * 1024" ;;
+                K) expr="$magnitud * 1024" ;;
+                M) expr="$magnitud * 1024 * 1024" ;;
+            esac
+            resultado=`echo "$expr" | bc`
+            tamano_total=`echo "$tamano_total + $resultado" | bc`
+        else
+            echo -e "\tTamaño desconocido: \e[92m$size\e[m"
+        fi
+    fi
+done
+
+echo -e "Tamaño total: \e[92m$tamano_total\e[m"
+tamano_total_int=`echo $tamano_total | awk 'BEGIN { FS="." } { print $1 }'`
+echo -e "Tamaño total: \e[92m$tamano_total_int\e[m"
+echo -e `bytes_for_humans $tamano_total_int`
+

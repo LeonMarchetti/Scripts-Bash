@@ -1,0 +1,55 @@
+#!/bin/bash
+if [ $EUID != 0 ]; then
+    sudo "$0" "$@"
+    exit $?
+fi
+
+perfil="$1" # Nombre del perfil de netctl
+
+#region Funciones
+_echo() {
+    echo -e "$1 \e[93m$2\e[m"
+}
+
+_error() {
+    echo -e "\e[91m$1\e[m"
+}
+#endregion
+
+# Me fijo si ya estoy/estaba conectado a una red (debe aparecer un * al lado
+# del nombre del perfil al que estoy conectado en "netctl list".
+if netctl list | grep -q "*"; then
+    _echo "Cambiando a perfil" "$perfil"
+    netctl switch-to "$perfil" 2>/dev/null
+else
+    interface=`cat /etc/netctl/$perfil | awk '
+        BEGIN {
+            FS="="
+        }
+        $1 ~ /^Interface$/ {
+            print $2
+        }
+    '`
+    _echo "Desactivando la interfaz" "$interface"
+    ip l set "$interface" down
+
+    _echo "Iniciando perfil" "$perfil"
+    netctl start "$perfil"
+fi
+
+if [ $? -eq 0 ]; then
+    echo -en "Detectando dirección IP...\r"
+    while :; do
+        ip=`ip -br -c a | \
+                grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | \
+                grep -e ^192. -e ^10. -e ^168.`
+        if [ "$ip" ]; then
+            break
+        fi
+        sleep 0.1
+    done
+    _echo "Dirección IP:" "$ip"
+else
+    _error Error
+    exit 1
+fi

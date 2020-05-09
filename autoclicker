@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if pgrep xdotool >/dev/null 2>&1; then
+    echo "En ejecución"
+    pkill xdotool
+else
+    echo "Detenido"
+    xdotool click --repeat=100000000 --delay=50 1
+fi
