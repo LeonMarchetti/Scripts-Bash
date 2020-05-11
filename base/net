@@ -6,39 +6,49 @@ fi
 
 perfil="$1" # Nombre del perfil de netctl
 
+#region Colores
+CLR_ROJO="\e[91m"
+CLR_VERD="\e[92m"
+CLR_AMAR="\e[93m"
+CLR_FIN="\e[m"
+#endregion
+
 #region Funciones
 _echo() {
-    echo -e "$1 \e[93m$2\e[m"
+    echo -e "$CLR_VERD$1 $CLR_AMAR$2$CLR_FIN"
+}
+
+_echo_r() {
+    echo -en "$1 $CLR_AMAR$2$CLR_FIN\r"
 }
 
 _error() {
-    echo -e "\e[91m$1\e[m"
+    echo -e "$CLR_ROJO$2$CLR_FIN"
+    exit 1
 }
 #endregion
 
 # Me fijo si ya estoy/estaba conectado a una red (debe aparecer un * al lado
 # del nombre del perfil al que estoy conectado en "netctl list".
 if netctl list | grep -q "*"; then
-    _echo "Cambiando a perfil" "$perfil"
+    _echo_r "Cambiando a perfil" "$perfil"
     netctl switch-to "$perfil" 2>/dev/null
+    _echo   "Cambiado a perfil" "$perfil "
 else
-    interface=`cat /etc/netctl/$perfil | awk '
-        BEGIN {
-            FS="="
-        }
-        $1 ~ /^Interface$/ {
-            print $2
-        }
-    '`
-    _echo "Desactivando la interfaz" "$interface"
-    ip l set "$interface" down
+    interfaz=`cat /etc/netctl/$perfil |
+                  grep "^Interface" |
+                  grep -Eo "[^=]+$"`
+    _echo_r "Desactivando la interfaz" "$interfaz"
+    ip l set "$interfaz" down
+    _echo   "Interfaz desactivada" "$interfaz    "
 
-    _echo "Iniciando perfil" "$perfil"
+    _echo_r "Iniciando perfil" "$perfil"
     netctl start "$perfil"
+    _echo   "Iniciado perfil" "$perfil "
 fi
 
 if [ $? -eq 0 ]; then
-    echo -en "Detectando dirección IP...\r"
+    _echo_r "Detectando dirección IP..."
     while :; do
         ip=`ip -br -c a | \
                 grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | \
@@ -48,8 +58,7 @@ if [ $? -eq 0 ]; then
         fi
         sleep 0.1
     done
-    _echo "Dirección IP:" "$ip"
+    _echo   "Dirección IP:" "$ip"
 else
     _error Error
-    exit 1
 fi
