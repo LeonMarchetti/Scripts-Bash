@@ -23,47 +23,52 @@ _echo_r() {
 }
 
 _error() {
-    echo -e "$CLR_ROJO$1$CLR_FIN"
+    echo -e "$CLR_ROJO$1 $CLR_AMAR$2$CLR_FIN"
     exit 1
 }
 #endregion
 
 # Me fijo si existe el perfil, y salgo si no existe
 if [ ! -f "/etc/netctl/$perfil" ]; then
-    _error "El perfil \"$perfil\" no existe"
+    _error "No existe el perfil" "$perfil"
 fi
 
 # Me fijo si ya estoy/estaba conectado a una red (debe aparecer un * al lado
 # del nombre del perfil al que estoy conectado en "netctl list".
 if netctl list | grep -q "*"; then
+    # Si ya estaba conectado a un perfil entonces simplemente me cambio al
+    # perfil nuevo.
     _echo_r "Cambiando a perfil" "$perfil"
-    netctl switch-to "$perfil"
+    netctl switch-to "$perfil" ||
+        _error "No se pudo cambiar al perfil" "$perfil"
     _echo   "Cambiado a perfil" "$perfil "
 else
+    # Para conectarme a un perfil si no estaba ya conectado tengo que primero
+    # deshabilitar la interfaz (netctl la habilita después) e iniciar el perfil.
     interfaz=`cat /etc/netctl/$perfil |
                   grep "^Interface" |
                   grep -Eo "[^=]+$"`
+
     _echo_r "Desactivando la interfaz" "$interfaz"
-    ip l set "$interfaz" down
+    ip l set "$interfaz" down ||
+        _error "No se pudo desactivar la interfaz" "$interfaz"
     _echo   "Interfaz desactivada" "$interfaz    "
 
     _echo_r "Iniciando perfil" "$perfil"
-    netctl start "$perfil"
-    _echo   "Iniciado perfil" "$perfil "
+    netctl start "$perfil" 2> /dev/null ||
+        _error "No se pudo iniciar el perfil" "$perfil"
+    _echo "Iniciado perfil" "$perfil "
 fi
 
-if [ $? -eq 0 ]; then
-    _echo_r "Detectando dirección IP..."
-    while :; do
-        ip=`ip -br -c a | \
-                grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | \
-                grep -e ^192. -e ^10. -e ^168.`
-        if [ "$ip" ]; then
-            break
-        fi
-        sleep 0.1
-    done
-    _echo   "Dirección IP:" "$ip"
-else
-    _error Error
-fi
+# Muestro la dirección IP
+_echo_r "Detectando dirección IP..."
+while :; do
+    ip=`ip -br -c a | \
+            grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | \
+            grep -e ^192. -e ^10. -e ^168.`
+    if [ "$ip" ]; then
+        break
+    fi
+    sleep 0.1
+done
+_echo "Dirección IP:" "$ip"
