@@ -23,16 +23,21 @@ _echo_r() {
 }
 
 _error() {
-    echo -e "$CLR_ROJO$2$CLR_FIN"
+    echo -e "$CLR_ROJO$1$CLR_FIN"
     exit 1
 }
 #endregion
+
+# Me fijo si existe el perfil, y salgo si no existe
+if [ ! -f "/etc/netctl/$perfil" ]; then
+    _error "El perfil \"$perfil\" no existe"
+fi
 
 # Me fijo si ya estoy/estaba conectado a una red (debe aparecer un * al lado
 # del nombre del perfil al que estoy conectado en "netctl list".
 if netctl list | grep -q "*"; then
     _echo_r "Cambiando a perfil" "$perfil"
-    netctl switch-to "$perfil" 2>/dev/null
+    netctl switch-to "$perfil"
     _echo   "Cambiado a perfil" "$perfil "
 else
     interfaz=`cat /etc/netctl/$perfil |
