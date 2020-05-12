@@ -4,18 +4,25 @@
 # -S`, si no puede trata con `yay -S`.
 # Si se mezclan dos paquetes de los repositorios oficiales y de la AUR primero
 # instala los paquetes de los oficiales y luego de la AUR.
+# Errores:
+#   1   No se especificaron paquetes.
+#   2   El paquete no fue encontrado.
 
+#region Funciones
 _echo() {
     echo -e "\e[92m$1\e[m"
 }
 
-error() {
-    echo -e "\e[91m$1\e[m";
-    exit 1
+_error() {
+    if [ "$2" ]; then
+        echo -e "\e[91minst: $2\e[m" >&2
+    fi
+    exit $1
 }
+#endregion
 
 if [[ -z $1 ]]; then
-    error "No se especificaron paquetes"
+    _error 1 "no se especificaron paquetes"
 fi
 
 if pacman -Si "$@" > /dev/null 2>&1; then
@@ -26,6 +33,6 @@ else
         _echo "Paquetes encontrados en AUR"
         yay -S "$@"
     else
-        error "Paquete no encontrado"
+        _error 2 "paquete no encontrado"
     fi
 fi

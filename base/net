@@ -4,6 +4,15 @@ if [ $EUID != 0 ]; then
     exit $?
 fi
 
+# net - Conectarse a perfil de netctl
+# Modo de empleo: net PERFIL
+# Errores:
+#   1   No se pasaron parámetros.
+#   2   No existe el perfil.
+#   3   No se pudo cambiar el perfil con "netctl switch-to $PERFIL".
+#   4   No se pudo deshabilitar la interfaz con "ip set $INTERFAZ down".
+#   5   No se pudo iniciar el perfil con "netctl start $PERFIL".
+
 perfil="$1" # Nombre del perfil de netctl
 
 #region Colores
@@ -23,14 +32,21 @@ _echo_r() {
 }
 
 _error() {
-    echo -e "$CLR_ROJO$1 $CLR_AMAR$2$CLR_FIN"
-    exit 1
+    if [ "$2" ]; then
+        echo -e "${CLR_ROJO}net: $2 $CLR_AMAR$3$CLR_FIN" >&2
+    fi
+    exit $1
 }
 #endregion
 
+# Me fijo si hay parámetros
+if [ -z $1 ]; then
+    _error 1 "falta indicar el perfil a conectarse"
+fi
+
 # Me fijo si existe el perfil, y salgo si no existe
 if [ ! -f "/etc/netctl/$perfil" ]; then
-    _error "No existe el perfil" "$perfil"
+    _error 2 "no existe el perfil" "$perfil"
 fi
 
 # Me fijo si ya estoy/estaba conectado a una red (debe aparecer un * al lado
@@ -40,7 +56,7 @@ if netctl list | grep -q "*"; then
     # perfil nuevo.
     _echo_r "Cambiando a perfil" "$perfil"
     netctl switch-to "$perfil" ||
-        _error "No se pudo cambiar al perfil" "$perfil"
+        _error 3 "no se pudo cambiar al perfil" "$perfil"
     _echo   "Cambiado a perfil" "$perfil "
 else
     # Para conectarme a un perfil si no estaba ya conectado tengo que primero
@@ -51,12 +67,12 @@ else
 
     _echo_r "Desactivando la interfaz" "$interfaz"
     ip l set "$interfaz" down ||
-        _error "No se pudo desactivar la interfaz" "$interfaz"
+        _error 4 "no se pudo desactivar la interfaz" "$interfaz"
     _echo   "Interfaz desactivada" "$interfaz    "
 
     _echo_r "Iniciando perfil" "$perfil"
     netctl start "$perfil" 2> /dev/null ||
-        _error "No se pudo iniciar el perfil" "$perfil"
+        _error 5 "no se pudo iniciar el perfil" "$perfil"
     _echo "Iniciado perfil" "$perfil "
 fi
 

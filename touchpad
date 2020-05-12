@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# touchpad - Habilita/deshabilita el touchpad
+# Modo de empleo: touchpad
+# El nombre del dispositivo se declara como constante dentro del script.
+# Errores:
+#   1   Dispositivo no encontrado.
+#   2   Estado parseado de la salida de "xinput list-props $DISPOSITIVO" desconocido.
+
 #region Constantes
 DEVICE="SynPS/2 Synaptics TouchPad"
 DEVICE_DISABLED="0"
@@ -8,8 +15,10 @@ DEVICE_ENABLED="1"
 
 #region Funciones
 _error() {
-    echo -e "\e[91m$1\e[m"
-    exit 1
+    if [ "$2" ]; then
+        echo -e "\e[91mtouchpad: $2\e[m" >&2
+    fi
+    exit $1
 }
 
 _success() {
@@ -29,8 +38,9 @@ if [[ $propiedades ]]; then
             xinput disable "$DEVICE"
             _success 'Touchpad deshabilitado'
             ;;
-        *)  _error "Estado \"$estado\" no reconocido"
+        *)
+            _error 2 "estado \"$estado\" no reconocido"
     esac
 else
-    _error "\"$DEVICE\" no encontrado"
+    _error 1 "dispositivo \"$DEVICE\" no encontrado"
 fi
