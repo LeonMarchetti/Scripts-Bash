@@ -19,7 +19,5 @@ Scripts escritos en Bash.
 * **npm_init**: Inicia un proyecto npm con algunas configuraciones iniciales.
 * **project**: Abre pestañas de una terminal para ejecutar varios comandos a la vez.
 * **subdir**: Calcula el tamaño recursivo de cada archivo y subdirectorio en el directorio indicado.
-* **tam_deps**: Calcula el tamaño total de las dependencias de un paquete de Arch Linux.
-    * *TODO* Tomar en cuenta los paquetes instalados.
-* **touchpad.sh**: Activa/desactiva el touchpad.
+* **touchpad**: Activa/desactiva el touchpad.
 * **wifi**: Wrapper para `wifi-menu` indicando la interfaz y al terminar el programa consultar la dirección IP resultante.
