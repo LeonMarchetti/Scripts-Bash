@@ -10,11 +10,13 @@ CLR_FIN="\e[m"
 
 if [[ $1 ]]; then
     if [[ $2 ]]; then
-        echo -e "$CLR_AMAR$1$CLR_FIN = [$CLR_VERD$2$CLR_FIN]"
+        echo -en "$CLR_AMAR$1$CLR_FIN = [$CLR_VERD"
+        shift
+        echo -e "$@${CLR_FIN}]"
     else
         echo -e "$CLR_ROSA$1$CLR_FIN"
     fi
 else
-    echo -e "$CLR_CYAN"CHECKPOINT"$CLR_FIN"
+    echo -e "${CLR_CYAN}CHECKPOINT$CLR_FIN"
 fi
 
