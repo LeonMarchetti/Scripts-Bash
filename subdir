@@ -1,30 +1,55 @@
 #!/bin/bash
 
-if [[ -z $1 ]]; then
-    dir=*
-else
-    dir=$1/*
-fi
+main() {
+    local dir=$(parsear_directorio "$@")
+    if [ "$?" ]; then
+        _error 1 "no existe el directorio"
+    fi
+    mostrar_subdirectorios "$dir"
+}
 
-du -csh $dir | sort -h | awk '
-    BEGIN {
-        CLR_TOTAL = "\033[30m\033[42m";
-        CLR_GIGAS = "\033[91m";
-        CLR_SIZE  = "\033[93m";
-        CLR_END   = "\033[m";
-    }
-    $1 !~ /G/ {
-        COLOR = CLR_SIZE
-    }
-    $1  ~ /G/ {
-        COLOR = CLR_GIGAS
-    }
-    $2 !~ /^total$/ {
-        n = split($2, a, "/");
-        printf "%s%s%s\t%s\n",
-            COLOR, $1, CLR_END, a[n]
-    }
-    $2 ~ /^total$/ {
-        print CLR_TOTAL $0 CLR_END
-    }
-'
+_error() {
+    if [ "$2" ]; then
+        echo -e "\e[91msubdir: $2\e[m" >&2
+    fi
+    exit $1
+}
+
+parsear_directorio() {
+    # Si no se especifica, se procesa el directorio actual.
+    if [[ -z $1 ]]; then
+        echo *
+    else
+        if [ -d $1 ]; then
+            echo "$1"/*
+        else
+            return 1
+        fi
+    fi
+}
+
+mostrar_subdirectorios() {
+    du -chs $dir | sort -h | awk '
+        BEGIN {
+            CLR_TOTAL = "\033[41m";
+            CLR_GIGAS = "\033[91m";
+            CLR_SIZE  = "\033[93m";
+            CLR_END   = "\033[m";
+        }
+        $1 !~ /G/ {
+            COLOR = CLR_SIZE
+        }
+        $1  ~ /G/ {
+            COLOR = CLR_GIGAS
+        }
+        $2 !~ /^total$/ {
+            n = split($2, a, "/");
+            printf "%s%s%s\t%s\n", COLOR, $1, CLR_END, a[n]
+        }
+        $2 ~ /^total$/ {
+            print CLR_TOTAL $0 CLR_END
+        }
+    '
+}
+
+main "$@"
