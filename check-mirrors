@@ -1,0 +1,60 @@
+#!/bin/bash
+
+#region Constantes
+URL_MIRRORLIST="https://www.chlinux.org/mirrorlist/?country=all&protocol=http&protocol=https&ip_version=4"
+FILE="/tmp/mirrorlist.txt"
+PING_COUNT=5
+#endregion
+
+#region Colores
+CLR_ROJO="\e[91m"
+CLR_VERD="\e[92m"
+CLR_AMAR="\e[93m"
+CLR_FIN="\e[m"
+#endregion
+
+#region Funciones
+_error() {
+    if [ "$2" ]; then
+        echo -e "${CLR_ROJO}check-mirrors: $2$CLR_FIN" >&2
+    fi
+    exit $1
+}
+
+main() {
+    obtener_lista || _error 1 "no se pudo obtener la lista de mirrors"
+    procesar_lista
+}
+
+obtener_lista() {
+    echo -en "Obteniendo lista de mirrors...\r"
+    wget "$URL_MIRRORLIST" -O "$FILE" > /dev/null 2>&1
+}
+
+procesar_lista() {
+    min_avg=400
+    min_url=
+
+    urls=$(cat $FILE | awk -F '/' '$1 ~ /Server/ { print $3 }')
+
+    for url in $urls; do
+        printf "Pingeando ${CLR_AMAR}%s${CLR_FIN}...%50s\r" "$url" " "
+        avg_time=$(ping -c $PING_COUNT $url | tail -1 | awk -F '/' '{ print $5 }')
+        if [ $avg_time ]; then
+            if [ $(echo "$avg_time < $min_avg" | bc -l) -eq 1 ]; then
+                min_avg=$avg_time
+                min_url=$url
+            fi
+        fi
+    done
+
+    _success "Mejor mirror" "$min_url"
+    _success "Tiempo" "$min_avg"
+}
+
+_success() {
+    printf "%s: $CLR_VERD%s$CLR_FIN%80s\n" "$1" "$2" " "
+}
+#endregion
+
+main "$@"
