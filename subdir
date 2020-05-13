@@ -2,9 +2,15 @@
 
 main() {
     local dir=$(parsear_directorio "$@")
+
     if [ -z "$dir" ]; then
         _error 1 "no existe el directorio"
     fi
+
+    if [ -z "$(ls -A $dir 2> /dev/null )" ]; then
+        _error 2 "el directorio está vacío"
+    fi
+
     mostrar_subdirectorios "$dir"
 }
 
