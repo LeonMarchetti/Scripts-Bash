@@ -15,6 +15,10 @@ fi
 
 perfil="$1" # Nombre del perfil de netctl
 
+#region Constantes
+ERASE="\e[K"
+#endregion
+
 #region Colores
 CLR_ROJO="\e[91m"
 CLR_VERD="\e[92m"
@@ -24,16 +28,16 @@ CLR_FIN="\e[m"
 
 #region Funciones
 _echo() {
-    echo -e "$CLR_VERD$1 $CLR_AMAR$2$CLR_FIN"
+    echo -e "${ERASE}${CLR_VERD}$1 ${CLR_AMAR}$2${CLR_FIN}"
 }
 
 _echo_r() {
-    echo -en "$1 $CLR_AMAR$2$CLR_FIN\r"
+    echo -en "${ERASE}$1 ${CLR_AMAR}$2${CLR_FIN}\r"
 }
 
 _error() {
     if [ "$2" ]; then
-        echo -e "${CLR_ROJO}net: $2 $CLR_AMAR$3$CLR_FIN" >&2
+        echo -e "${ERASE}${CLR_ROJO}net: $2 ${CLR_AMAR}$3${CLR_FIN}" >&2
     fi
     exit $1
 }
@@ -55,9 +59,9 @@ if netctl list | grep -q "*"; then
     # Si ya estaba conectado a un perfil entonces simplemente me cambio al
     # perfil nuevo.
     _echo_r "Cambiando a perfil" "$perfil"
-    netctl switch-to "$perfil" ||
+    netctl switch-to "$perfil" 2> /dev/null ||
         _error 3 "no se pudo cambiar al perfil" "$perfil"
-    _echo   "Cambiado a perfil" "$perfil "
+    _echo "Cambiado a perfil" "$perfil"
 else
     # Para conectarme a un perfil si no estaba ya conectado tengo que primero
     # deshabilitar la interfaz (netctl la habilita después) e iniciar el perfil.
@@ -68,12 +72,12 @@ else
     _echo_r "Desactivando la interfaz" "$interfaz"
     ip l set "$interfaz" down ||
         _error 4 "no se pudo desactivar la interfaz" "$interfaz"
-    _echo   "Interfaz desactivada" "$interfaz    "
+    _echo "Interfaz desactivada" "$interfaz"
 
     _echo_r "Iniciando perfil" "$perfil"
     netctl start "$perfil" 2> /dev/null ||
         _error 5 "no se pudo iniciar el perfil" "$perfil"
-    _echo "Iniciado perfil" "$perfil "
+    _echo "Iniciado perfil" "$perfil"
 fi
 
 # Muestro la dirección IP
