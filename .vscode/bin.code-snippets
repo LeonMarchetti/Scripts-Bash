@@ -1,0 +1,93 @@
+{
+	"Case": {
+		"prefix": "case",
+		"body": [
+			"case ${1|$,\"|} in",
+			"\t$2) $3",
+			"\t;;",
+			"\t\t*) $4",
+			"esac"
+		],
+		"description": "Case"
+	},
+	"For In": {
+		"prefix": "for",
+		"body": [
+			"for $1 in $$2; do",
+			"\tlog $1 \"$$1\"$0",
+			"done"
+		],
+		"description": "For In"
+	},
+	"Función": {
+		"prefix": "func",
+		"body": [
+			"$1() {",
+			"\t$0",
+			"}"
+		],
+		"description": "Función"
+	},
+	"If": {
+		"prefix": "if",
+		"body": [
+			"if [ $1 ]; then",
+			"\t$0",
+			"fi"
+		],
+		"description": "If"
+	},
+	"If Grep": {
+		"prefix": "if_grep",
+		"body": [
+			"if $$1 | grep -q \"$2\"; then",
+			"\t$0",
+			"fi"
+		],
+		"description": "If Grep"
+	},
+	"Local": {
+		"prefix": "local",
+		"body": "local $1=\"$2\"",
+		"description": "Local variable"
+	},
+	"Log": {
+		"prefix": "log",
+		"body": "log $1 \"$$1\"",
+		"description": "Log"
+	},
+	"Main": {
+		"prefix": "main",
+		"body": [
+			"main() {",
+			"\t$0",
+			"}",
+			"",
+			"main \"$@\""
+		],
+		"description": "Main"
+	},
+	"Region": {
+		"prefix": "region",
+		"body": [
+			"#region $1",
+			"$0",
+			"#endregion"
+		],
+		"description": "Región de código"
+	},
+	"Shebang" : {
+		"prefix": "bash",
+		"body": "#!/bin/bash\n",
+		"description": "Shebang"
+	},
+	"While infinito": {
+		"prefix": "while",
+		"body": [
+			"while :; do",
+			"\t$0",
+			"done"
+		],
+		"description": "While infinito"
+	},
+}
