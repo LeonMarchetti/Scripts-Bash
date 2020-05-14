@@ -38,13 +38,23 @@
 		"description": "If"
 	},
 	"If Grep": {
-		"prefix": "if_grep",
+		"prefix": "if",
 		"body": [
 			"if $$1 | grep -q \"$2\"; then",
 			"\t$0",
 			"fi"
 		],
 		"description": "If Grep"
+	},
+	"If Regex": {
+		"prefix": "if",
+		"body": [
+			"if [[ $$1 =~ $$2 ]]; then",
+			"\tvar1=\"${BASH_REMATCH[1]}\"",
+			"\t$0",
+			"fi"
+		],
+		"description": "If Regex"
 	},
 	"Local": {
 		"prefix": "local",
