@@ -5,6 +5,7 @@ URL_MIRRORLIST="https://www.archlinux.org/mirrorlist/?country=all&protocol=http&
 FILE="/tmp/mirrorlist.txt"
 PING_COUNT=5
 ERASE="\e[K"
+RE_MIRROR="(.*)\\s+(.*)"
 #endregion
 
 #region Colores
@@ -39,23 +40,45 @@ obtener_lista() {
 procesar_lista() {
     local min_avg=400
     local min_url=
+    local min_pais=
+    local url
 
-    local urls=$(cat $FILE | awk -F '/' '$1 ~ /Server/ { print $3 }')
+    local mirrors=$(cat $FILE | awk -F '/' '
+        $1 ~ /^##/ {
+            gsub("## ", "")
+            pais=$0
+        }
+        $1 ~ /Server/ {
+            printf "%s\t%s\n", pais, $3
+        }
+    ')
 
-    for url in $urls; do
-        printf "${ERASE}Pingeando ${CLR_AMAR}%s${CLR_FIN}...\r" "$url"
-        local avg_time=$(ping -c $PING_COUNT $url | tail -1 | awk -F '/' '{ print $5 }')
-        if [ $avg_time ]; then
-            if [ $(echo "$avg_time < $min_avg" | bc -l) -eq 1 ]; then
-                min_avg=$avg_time
-                min_url=$url
+    IFS=$'\n'
+    for linea in $mirrors; do
+        if [[ $linea =~ $RE_MIRROR ]]; then
+            local pais="${BASH_REMATCH[1]}"
+            local url="${BASH_REMATCH[2]}"
+
+            printf "${ERASE}Pingeando ${CLR_AMAR}%s${CLR_FIN} (%s)...\r" "$url" "$pais"
+
+            local avg_time=$(ping -c $PING_COUNT $url |
+                             tail -1 |
+                             awk -F '/' '{ print $5 }')
+            if [ $avg_time ]; then
+                if [ $(echo "$avg_time < $min_avg" | bc -l) -eq 1 ]; then
+                    min_avg=$avg_time
+                    min_url=$url
+                    min_pais=$pais
+                fi
             fi
+        else
+            _error 2 "error de regex: [$linea]"
         fi
-        sleep 1
     done
 
     _success "Mejor mirror" "$min_url"
-    _success "Tiempo" "$min_avg"
+    _success "Pais" "$min_pais"
+    _success "Tiempo" "$min_avg ms"
 }
 
 _success() {
