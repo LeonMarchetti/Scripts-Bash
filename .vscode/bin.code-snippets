@@ -52,6 +52,8 @@
 			"if [[ $$1 =~ $$2 ]]; then",
 			"\tvar1=\"${BASH_REMATCH[1]}\"",
 			"\t$0",
+			"else",
+			"\t _error 1 \"error de regex: [$$1]\"",
 			"fi"
 		],
 		"description": "If Regex"
