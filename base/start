@@ -61,28 +61,27 @@ while [ -n "$1" ]; do
         -s) flag="SERVICIO" ;;
         -p) flag="PUERTO" ;;
         -*)
-            echo -e "${CLR_ROJO}Opción desconocida ${CLR_FIN}$1"
+            echo -e "${CLR_ROJO}Opción desconocida \"$1\"${CLR_FIN}"
             flag=
             ;;
         *)
             case $flag in
                 SERVICIO) iniciar_servicio $1 ;;
                 PUERTO) permitir_puerto $1 ;;
-                *) echo -e "${CLR_ROJO}Ignorando argumento ${CLR_FIN}$1"
+                *) echo -e "${CLR_ROJO}Ignorando argumento \"$1\"${CLR_FIN}"
             esac
             ;;
     esac
     shift
 done
 
-# Capturar señal de C+c y cierre de la terminal
-trap terminar SIGHUP EXIT
+trap terminar EXIT
 
 echo
 echo -n "Esperando interrupción..."
 
 while :; do
-    read -t 1 -n 1 -s PASSWORD
+    read -n 1 || terminar
     if [ $? = 0 ] ; then
         break
     fi
