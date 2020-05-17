@@ -4,6 +4,17 @@ if [ $EUID != 0 ]; then
     exit $?
 fi
 
+# Crea una especie de "sesión" para poder iniciar servicios y abrir puertos en
+# el firewall para después poder terminarlos y cerrarlos al terminar de
+# usarlos.
+# Modo de empleo: start -s servicio1 servicio2 -p puerto1 puerto2
+# Todos los argumentos detrás de una opción "-s" se tratan como nombres de
+# servicios y detrás de "-p" como puertos.
+# Errores:
+#   1   UFW no está instalado.
+#   2   Se ingresó una opción desconocida.
+#   3   Alguno de los servicios no existe.
+
 #region Colores
 CLR_AMAR="\e[93m"
 CLR_VERD="\e[92m"
@@ -20,6 +31,7 @@ puertos=()
 
 #region Funciones
 main() {
+    comprobar_ufw
     procesar_argumentos "$@"
     trap terminar EXIT
     iniciar
@@ -42,6 +54,12 @@ _error() {
     exit $1
 }
 
+comprobar_ufw() {
+    if ! which ufw > /dev/null 2>&1; then
+        _error 1 "UFW no está instalado"
+    fi
+}
+
 procesar_argumentos() {
     # Bandera para indicar si el argumento es un "SERVICIO" o un "PUERTO"
     # durante el procesamiento de los argumentos.
@@ -50,7 +68,7 @@ procesar_argumentos() {
         case "$1" in
             -s) flag="SERVICIO" ;;
             -p) flag="PUERTO" ;;
-            -*) _error 1 "Opción desconocida ${CLR_AMAR}$1" ;;
+            -*) _error 2 "Opción desconocida ${CLR_AMAR}$1" ;;
             *)
                 case $flag in
                     SERVICIO) comprobar_servicio $1 ;;
@@ -67,7 +85,7 @@ comprobar_servicio() {
     local servicio=$1
 
     if ! servicio_existe "$servicio"; then
-        _error 2 "El servicio ${CLR_AMAR}$servicio${CLR_ROJO} no existe, terminando..."
+        _error 3 "El servicio ${CLR_AMAR}$servicio${CLR_ROJO} no existe, terminando..."
     fi
 
     if servicio_esta_activo "$servicio"; then
