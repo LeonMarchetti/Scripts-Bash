@@ -11,15 +11,82 @@ CLR_ROJO="\e[91m"
 CLR_FIN="\e[m"
 #endregion
 
+#region Globales
+# Listas de servicios y puertos activados por este script. Al terminar el
+# programa se detienen y cierran los servicios y puertos en estas listas.
+servicios=()
+puertos=()
+#endregion
+
 #region Funciones
-iniciar_servicio() {
-    if systemctl is-active -q "$1"; then
-        echo -e "El servicio ${CLR_AMAR}$1${CLR_FIN} ya estaba iniciado, ignorando..."
-    else
-        echo -e "${CLR_VERD}Iniciando${CLR_FIN} servicio ${CLR_AMAR}$1${CLR_FIN}..."
-        systemctl start "$1"
-        servicios+=($1)
+main() {
+    trap terminar EXIT
+
+    procesar_argumentos "$@"
+
+    echo
+    echo -n "Esperando interrupción..."
+
+    while :; do
+        read -n 1 || terminar
+        if [ $? = 0 ] ; then
+            break
+        fi
+    done
+}
+
+_error() {
+    if [ "$2" ]; then
+        echo -e "${CLR_ROJO}start: $2${CLR_FIN}" >&2
     fi
+    exit $1
+}
+
+procesar_argumentos() {
+    # Bandera para indicar si el argumento es un "SERVICIO" o un "PUERTO" durante
+    # el procesamiento de los argumentos.
+    local flag=
+    while [ "$1" ]; do
+        case "$1" in
+            -s) flag="SERVICIO" ;;
+            -p) flag="PUERTO" ;;
+            -*) _error 1 "Opción desconocida ${CLR_AMAR}$1" ;;
+            *)
+                case $flag in
+                    SERVICIO) iniciar_servicio $1 ;;
+                    PUERTO) permitir_puerto $1 ;;
+                    *) echo -e "Ignorando argumento ${CLR_AMAR}$1${CLR_FIN}"
+                esac
+                ;;
+        esac
+        shift
+    done
+}
+
+iniciar_servicio() {
+    if ! servicio_existe "$1"; then
+        _error 2 "El servicio ${CLR_AMAR}$1${CLR_ROJO} no existe, terminando..."
+    fi
+
+    if servicio_esta_activo "$1"; then
+        echo -e "El servicio ${CLR_AMAR}$1${CLR_FIN} ya estaba iniciado, ignorando..."
+        return
+    fi
+
+    echo -e "${CLR_VERD}Iniciando${CLR_FIN} servicio ${CLR_AMAR}$1${CLR_FIN}..."
+    systemctl start "$1"
+    servicios+=($1)
+}
+
+servicio_existe() {
+    systemctl status "$1" 1&> /dev/null
+    if [ "$?" -eq 4 ]; then
+        return 1
+    fi
+}
+
+servicio_esta_activo() {
+    systemctl is-active -q "$1"
 }
 
 permitir_puerto() {
@@ -48,41 +115,4 @@ terminar() {
 }
 #endregion
 
-# Bandera para indicar si el argumento es un "SERVICIO" o un "PUERTO" durante
-# el procesamiento de los argumentos.
-flag=
-# Listas de servicios y puertos activados por este script. Al terminar el
-# programa se detienen y cierran los servicios y puertos en estas listas.
-servicios=()
-puertos=()
-
-while [ -n "$1" ]; do
-    case "$1" in
-        -s) flag="SERVICIO" ;;
-        -p) flag="PUERTO" ;;
-        -*)
-            echo -e "${CLR_ROJO}Opción desconocida \"$1\"${CLR_FIN}"
-            flag=
-            ;;
-        *)
-            case $flag in
-                SERVICIO) iniciar_servicio $1 ;;
-                PUERTO) permitir_puerto $1 ;;
-                *) echo -e "${CLR_ROJO}Ignorando argumento \"$1\"${CLR_FIN}"
-            esac
-            ;;
-    esac
-    shift
-done
-
-trap terminar EXIT
-
-echo
-echo -n "Esperando interrupción..."
-
-while :; do
-    read -n 1 || terminar
-    if [ $? = 0 ] ; then
-        break
-    fi
-done
+main "$@"
