@@ -19,6 +19,15 @@
 		],
 		"description": "For In"
 	},
+	"For In Array": {
+		"prefix": "for",
+		"body": [
+			"for $1 in ${$2[@]}; do",
+			"\tlog $1 \"$$1\"$0",
+			"done"
+		],
+		"description": "For In Array"
+	},
 	"Función": {
 		"prefix": "func",
 		"body": [
