@@ -1,0 +1,109 @@
+#!/bin/bash
+
+#region Constantes
+ERASE="\e[K"
+REGEX="Sólo en (.*): (.*)"
+#endregion
+
+#region Colores
+CLR_ROJO="\e[91m"
+CLR_VERD="\e[92m"
+CLR_AMAR="\e[93m"
+CLR_FIN="\e[m"
+#endregion
+
+#region Globales
+solo_dir1=()
+solo_dir2=()
+#endregion
+
+#region Funciones
+_echo() {
+    echo -e "${ERASE}${CLR_VERD}$1${CLR_FIN} $2"
+}
+
+_echo_r() {
+    # Mensaje que luego va a ser sobreescrito
+    echo -en "${ERASE}$1${CLR_FIN} $2\r"
+}
+
+_error() {
+    if [ "$2" ]; then
+        echo -e "${ERASE}${CLR_ROJO}$(basename "$0"): $2${CLR_FIN}" >&2
+    fi
+    exit $1
+}
+#endregion
+
+main() {
+    dir1="$1"
+    dir2="$2"
+
+    _echo_r "Calculando diferencias"
+    local diff=$(calcular_diferencias "$dir1" "$dir2")
+    separar_archivos "$dir1" "$dir2" "$diff"
+    copiar "$dir1" "$dir2"
+    borrar "$dir1" "$dir2"
+}
+
+calcular_diferencias() {
+    diff "$1" "$2"
+    # cat diff.txt
+}
+
+separar_archivos() {
+    local dir1="$1"
+    local dir2="$2"
+    local archivo
+    local dir
+    local linea
+
+    IFS=$'\n'
+    for linea in $3; do
+        if [[ $linea =~ $REGEX ]]; then
+            dir=${BASH_REMATCH[1]}
+            archivo=${BASH_REMATCH[2]}
+            case $dir in
+                $dir1)
+                    if [[ ! -d "$dir1/$archivo" ]] ; then
+                        solo_dir1+=($archivo)
+                    fi ;;
+                $dir2)
+                    if [[ ! -d "$dir2/$archivo" ]] ; then
+                        solo_dir2+=($archivo)
+                    fi ;;
+                *) _error 1 "directorio desconocido: $dir"
+            esac
+        else
+            echo -e "${ERASE}${CLR_ROJO}diff-sd: error de regex: [$linea]${CLR_FIN}"
+        fi
+    done
+}
+
+copiar() {
+    # Se copian los archivos que solo están en el primer directorio al segundo.
+    local dir1="$1"
+    local dir2="$2"
+    local archivo
+
+    echo -e "${CLR_AMAR}${dir1}${CLR_FIN}:"
+    for archivo in ${solo_dir1[@]}; do
+        _echo_r "Copiando" "$archivo"
+        cp "${dir1}/${archivo}" "${dir2}/" ||
+            _error 2 "falló copiar $archivo"
+        _echo "Copiado" "$archivo"
+    done
+}
+
+borrar() {
+    # Se borran los archivos que estén solo en el segundo directorio.
+    local dir2="$2"
+    local archivo
+
+    echo -e "${CLR_AMAR}${dir2}${CLR_FIN}:"
+    for archivo in ${solo_dir2[@]}; do
+        echo -e "${archivo}"
+    done
+}
+
+main "$@"
