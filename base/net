@@ -13,8 +13,6 @@ fi
 #   4   No se pudo deshabilitar la interfaz con "ip set $INTERFAZ down".
 #   5   No se pudo iniciar el perfil con "netctl start $PERFIL".
 
-perfil="$1" # Nombre del perfil de netctl
-
 #region Constantes
 ERASE="\e[K"
 #endregion
@@ -26,12 +24,13 @@ CLR_AMAR="\e[93m"
 CLR_FIN="\e[m"
 #endregion
 
-#region Funciones
+#region echo
 _echo() {
     echo -e "${ERASE}${CLR_VERD}$1 ${CLR_AMAR}$2${CLR_FIN}"
 }
 
 _echo_r() {
+    # Mensaje que luego va a ser sobreescrito
     echo -en "${ERASE}$1 ${CLR_AMAR}$2${CLR_FIN}\r"
 }
 
@@ -43,52 +42,81 @@ _error() {
 }
 #endregion
 
-# Me fijo si hay parámetros
-if [ -z $1 ]; then
-    _error 1 "falta indicar el perfil a conectarse"
-fi
+main() {
+    # Me fijo si hay parámetros
+    if [ -z $1 ]; then
+        _error 1 "falta indicar el perfil a conectarse"
+    fi
 
-# Me fijo si existe el perfil, y salgo si no existe
-if [ ! -f "/etc/netctl/$perfil" ]; then
-    _error 2 "no existe el perfil" "$perfil"
-fi
+    local perfil="$1" # Nombre del perfil de netctl
+    existe_perfil "$perfil"
 
-# Me fijo si ya estoy/estaba conectado a una red (debe aparecer un * al lado
-# del nombre del perfil al que estoy conectado en "netctl list".
-if netctl list | grep -q "*"; then
+    if esta_conectado ; then
+        cambiar_perfil "$perfil"
+    else
+        desactivar_interfaz "$perfil"
+        iniciar_perfil "$perfil"
+    fi
+
+    detectar_direccion_ip
+}
+
+existe_perfil() {
+    # Me fijo si existe el perfil, y salgo si no existe
+    if [ ! -f "/etc/netctl/$1" ]; then
+        _error 2 "no existe el perfil" "$1"
+    fi
+}
+
+esta_conectado() {
+    # Me fijo si ya estoy/estaba conectado a una red (debe aparecer un * al lado
+    # del nombre del perfil al que estoy conectado en "netctl list".
+    netctl list | grep -q "*"
+}
+
+cambiar_perfil() {
     # Si ya estaba conectado a un perfil entonces simplemente me cambio al
     # perfil nuevo.
-    _echo_r "Cambiando a perfil" "$perfil"
-    netctl switch-to "$perfil" 2> /dev/null ||
-        _error 3 "no se pudo cambiar al perfil" "$perfil"
-    _echo "Cambiado a perfil" "$perfil"
-else
+    _echo_r "Cambiando a perfil" "$1"
+    netctl switch-to "$1" 2> /dev/null ||
+        _error 3 "no se pudo cambiar al perfil" "$1"
+    _echo "Cambiado a perfil" "$1"
+}
+
+desactivar_interfaz() {
     # Para conectarme a un perfil si no estaba ya conectado tengo que primero
     # deshabilitar la interfaz (netctl la habilita después) e iniciar el perfil.
-    interfaz=`cat /etc/netctl/$perfil |
-                  grep "^Interface" |
-                  grep -Eo "[^=]+$"`
+    local interfaz=`cat /etc/netctl/$1 |
+                    grep "^Interface" |
+                    grep -Eo "[^=]+$"`
 
     _echo_r "Desactivando la interfaz" "$interfaz"
     ip l set "$interfaz" down ||
         _error 4 "no se pudo desactivar la interfaz" "$interfaz"
     _echo "Interfaz desactivada" "$interfaz"
+}
 
-    _echo_r "Iniciando perfil" "$perfil"
-    netctl start "$perfil" 2> /dev/null ||
-        _error 5 "no se pudo iniciar el perfil" "$perfil"
-    _echo "Iniciado perfil" "$perfil"
-fi
+iniciar_perfil() {
+    _echo_r "Iniciando perfil" "$1"
+    netctl start "$1" 2> /dev/null ||
+        _error 5 "no se pudo iniciar el perfil" "$1"
+    _echo "Iniciado perfil" "$1"
+}
 
-# Muestro la dirección IP
-_echo_r "Detectando dirección IP..."
-while :; do
-    ip=`ip -br -c a | \
+detectar_direccion_ip() {
+    local ip
+
+    _echo_r "Detectando dirección IP..."
+    while :; do
+        ip=`ip -br -c a | \
             grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | \
             grep -e ^192. -e ^10. -e ^168.`
-    if [ "$ip" ]; then
-        break
-    fi
-    sleep 0.1
-done
-_echo "Dirección IP:" "$ip"
+        if [ "$ip" ]; then
+            break
+        fi
+        sleep 0.1
+    done
+    _echo "Dirección IP:" "$ip"
+}
+
+main "$@"
