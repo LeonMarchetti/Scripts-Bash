@@ -1,11 +1,16 @@
 {
+	"Array": {
+		"prefix": "arr",
+		"body": "$1=(\"$2\" $0)",
+		"description": "Array"
+	},
 	"Case": {
 		"prefix": "case",
 		"body": [
-			"case ${1|$,\"|} in",
-			"\t$2) $3",
-			"\t;;",
-			"\t\t*) $4",
+			"case $1 in",
+			"\t$2) $3 ;;",
+			"\t$4) $5 ;;",
+			"\t*)",
 			"esac"
 		],
 		"description": "Case"
@@ -40,8 +45,10 @@
 	"If": {
 		"prefix": "if",
 		"body": [
-			"if [ $1 ]; then",
-			"\t$0",
+			"if $1 ; then",
+			"\t$2",
+			"else",
+			"\t",
 			"fi"
 		],
 		"description": "If"
