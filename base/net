@@ -90,10 +90,16 @@ desactivar_interfaz() {
                     grep "^Interface" |
                     grep -Eo "[^=]+$"`
 
-    _echo_r "Desactivando la interfaz" "$interfaz"
-    ip l set "$interfaz" down ||
-        _error 4 "no se pudo desactivar la interfaz" "$interfaz"
-    _echo "Interfaz desactivada" "$interfaz"
+    if interfaz_esta_activa "$interfaz" ; then
+        _echo_r "Desactivando la interfaz" "$interfaz"
+        ip l set "$interfaz" down ||
+            _error 4 "no se pudo desactivar la interfaz" "$interfaz"
+        _echo "Interfaz desactivada" "$interfaz"
+    fi
+}
+
+interfaz_esta_activa() {
+    cat "/sys/class/net/$1/operstate" | grep -q "up"
 }
 
 iniciar_perfil() {
