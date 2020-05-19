@@ -99,7 +99,8 @@ desactivar_interfaz() {
 }
 
 interfaz_esta_activa() {
-    cat "/sys/class/net/$1/operstate" | grep -q "up"
+    # $1: Nombre de perfil de netctl.
+    ip address show up | grep -q "$1"
 }
 
 iniciar_perfil() {
