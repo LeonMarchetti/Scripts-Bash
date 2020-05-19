@@ -11,10 +11,11 @@
 # Si hay un archivo que está en dir2 pero no en dir1 entonces se borra.
 
 # Errores:
-#   1   Se encontró un directorio desconocido en la salida de "diff".
-#   2   Falló al copiar un archivo de $dir1 a $dir2.
-#   3   Falló al borrar un archivo de $dir2.
-#   4   No coincidió la linea con las expresiones regulares.
+#   1   Alguno de los argumentos no es un directorio.
+#   2   Se encontró un directorio desconocido en la salida de "diff".
+#   3   Falló al copiar un archivo de $dir1 a $dir2.
+#   4   Falló al borrar un archivo de $dir2.
+#   5   No coincidió la linea con las expresiones regulares.
 
 #region Constantes
 ERASE="\e[K"
@@ -57,14 +58,25 @@ _mostrar_dir() {
 #endregion
 
 main() {
-    dir1="$1"
-    dir2="$2"
+    existe_directorio "$1" ||
+        _error 1 "'$1' no es un directorio."
+
+    existe_directorio "$2" ||
+        _error 1 "'$2' no es un directorio."
+
+    local dir1="$1"
+    local dir2="$2"
 
     _echo_r "Calculando diferencias"
     local diff=$(calcular_diferencias "$dir1" "$dir2")
     separar_archivos "$dir1" "$dir2" "$diff"
     copiar "$dir1" "$dir2"
     borrar "$dir2"
+}
+
+existe_directorio() {
+    # $1: Nombre del parámetro pasado como directorio.
+    [[ -d "$1" ]]
 }
 
 calcular_diferencias() {
@@ -92,7 +104,7 @@ separar_archivos() {
                     if [[ ! -d "$dir2/$archivo" ]] ; then
                         solo_dir2+=($archivo)
                     fi ;;
-                *) _error 1 "directorio desconocido: $dir"
+                *) _error 2 "directorio desconocido: $dir"
             esac
         else
             if [[ $linea =~ $REGEX_DIST ]]; then
@@ -101,7 +113,7 @@ separar_archivos() {
                     solo_dir1+=($archivo)
                 fi
             else
-                _error 4 "error de regex: $linea"
+                _error 5 "error de regex: $linea"
             fi
         fi
     done
@@ -117,7 +129,7 @@ copiar() {
     for archivo in ${solo_dir1[@]}; do
         _echo_r "Copiando" "$archivo"
         cp -f "${dir1}/${archivo}" "${dir2}/" ||
-            _error 2 "falló copiar $archivo"
+            _error 3 "falló copiar $archivo"
         _echo "Copiado" "$archivo"
     done
 }
@@ -131,7 +143,7 @@ borrar() {
     for archivo in ${solo_dir2[@]}; do
         _echo_r "Borrando" "$archivo"
         rm "${dir2}/${archivo}" ||
-            _error 3 "falló borrar $archivo"
+            _error 4 "falló borrar $archivo"
         _echo "Borrado" "$archivo"
     done
 }
