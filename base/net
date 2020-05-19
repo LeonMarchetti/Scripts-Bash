@@ -63,6 +63,8 @@ main() {
 
 existe_perfil() {
     # Me fijo si existe el perfil, y salgo si no existe
+    # $1: Nombre de perfil de netctl.
+
     if [ ! -f "/etc/netctl/$1" ]; then
         _error 2 "no existe el perfil" "$1"
     fi
@@ -71,12 +73,15 @@ existe_perfil() {
 esta_conectado() {
     # Me fijo si ya estoy/estaba conectado a una red (debe aparecer un * al lado
     # del nombre del perfil al que estoy conectado en "netctl list".
+
     netctl list | grep -q "*"
 }
 
 cambiar_perfil() {
     # Si ya estaba conectado a un perfil entonces simplemente me cambio al
     # perfil nuevo.
+    # $1: Nombre de perfil (a conectarse) de netctl.
+
     _echo_r "Cambiando a perfil" "$1"
     netctl switch-to "$1" 2> /dev/null ||
         _error 3 "no se pudo cambiar al perfil" "$1"
@@ -86,6 +91,8 @@ cambiar_perfil() {
 desactivar_interfaz() {
     # Para conectarme a un perfil si no estaba ya conectado tengo que primero
     # deshabilitar la interfaz (netctl la habilita después) e iniciar el perfil.
+    # $1: Nombre de perfil de netctl.
+
     local interfaz=`cat /etc/netctl/$1 |
                     grep "^Interface" |
                     grep -Eo "[^=]+$"`
@@ -104,6 +111,7 @@ interfaz_esta_activa() {
 }
 
 iniciar_perfil() {
+    # $1: Nombre de perfil de netctl.
     _echo_r "Iniciando perfil" "$1"
     netctl start "$1" 2> /dev/null ||
         _error 5 "no se pudo iniciar el perfil" "$1"
