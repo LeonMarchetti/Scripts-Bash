@@ -1,0 +1,19 @@
+#!/bin/bash
+
+#region Constantes
+UPPER="A-Z"
+LOWER="a-z"
+NUMBERS="0-9"
+SYMBOLS="!@#$%&*()?{}[]:;|_='\-"
+#endregion
+
+main() {
+    caracteres="$UPPER$LOWER$NUMBERS$SYMBOLS"
+    cantidad=$(($RANDOM % 5 + 5))
+    for (( i=0; i<$cantidad; i++ )); do
+        tamano=$(($RANDOM % 8 + 8))
+        head /dev/urandom | tr -dc $caracteres | head -c $tamano ; echo
+    done
+}
+
+main "$@"

@@ -18,6 +18,7 @@ Scripts escritos en Bash.
 * **jest**: Crea los archivos de test de componentes para usar en el framework de React.js **Jest**.
 * **log**: Script simple para hacer logging.
 * **npm-init**: Inicia un proyecto npm con algunas configuraciones iniciales.
+* **pass**: Generador de contraseñas.
 * **project**: Abre pestañas de una terminal para ejecutar varios comandos a la vez.
 * **subdir**: Calcula el tamaño recursivo de cada archivo y subdirectorio en el directorio indicado.
 * **touchpad**: Activa/desactiva el touchpad.
