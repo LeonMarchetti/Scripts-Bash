@@ -11,36 +11,59 @@
 DEVICE="SynPS/2 Synaptics TouchPad"
 DEVICE_DISABLED="0"
 DEVICE_ENABLED="1"
+ERASE="\e[K"
+#endregion
+
+#region Colores
+CLR_ROJO="\e[91m"
+CLR_VERD="\e[92m"
+CLR_FIN="\e[m"
 #endregion
 
 #region Funciones
 _error() {
     if [ "$2" ]; then
-        echo -e "\e[91mtouchpad: $2\e[m" >&2
+        echo -e "${ERASE}${CLR_ROJO}$(basename "$0"): $2${CLR_FIN}" >&2
     fi
     exit $1
 }
 
 _success() {
-    echo -e "\e[92m$1\e[m"
+    echo -e "${ERASE}${CLR_VERD}$1${CLR_FIN}"
 }
 #endregion
 
-propiedades=`xinput list-props "$DEVICE" 2> /dev/null`
-if [[ $propiedades ]]; then
-    estado=`echo "$propiedades" | grep 'Device Enabled' | awk '{print $4}'`
-    case $estado in
-        $DEVICE_DISABLED)
-            xinput enable "$DEVICE"
-            _success 'Touchpad habilitado'
-            ;;
-        $DEVICE_ENABLED)
-            xinput disable "$DEVICE"
-            _success 'Touchpad deshabilitado'
-            ;;
-        *)
-            _error 2 "estado \"$estado\" no reconocido"
-    esac
-else
-    _error 1 "dispositivo \"$DEVICE\" no encontrado"
-fi
+main() {
+    propiedades=$(obtener_propiedades)
+    if [[ $propiedades ]]; then
+        estado=$(obtener_estado "$propiedades")
+        case $estado in
+            $DEVICE_DISABLED) habilitar ;;
+            $DEVICE_ENABLED) deshabilitar ;;
+            *) _error 2 "estado \"$estado\" no reconocido"
+        esac
+    else
+        _error 1 "dispositivo \"$DEVICE\" no encontrado"
+    fi
+}
+
+obtener_propiedades() {
+    xinput list-props "$DEVICE" 2> /dev/null
+}
+
+obtener_estado() {
+    # $1: Propiedades de xinput.
+    echo "$1" | grep 'Device Enabled' | awk '{print $4}'
+}
+
+habilitar() {
+    xinput enable "$DEVICE"
+    _success 'Touchpad habilitado'
+}
+
+deshabilitar() {
+    xinput disable "$DEVICE"
+    _success 'Touchpad deshabilitado'
+}
+
+main "$@"
