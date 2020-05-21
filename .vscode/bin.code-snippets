@@ -15,6 +15,15 @@
 		],
 		"description": "Case"
 	},
+	"For": {
+		"prefix": "for",
+		"body": [
+			"for (( $1=0; $1<$2; $1++)); do",
+			"\tlog $1 \"$$1\"$0",
+			"done"
+		],
+		"description": "For"
+	},
 	"For In": {
 		"prefix": "for",
 		"body": [
@@ -47,8 +56,6 @@
 		"body": [
 			"if $1 ; then",
 			"\t$2",
-			"else",
-			"\t",
 			"fi"
 		],
 		"description": "If"
