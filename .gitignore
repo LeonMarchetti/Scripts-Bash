@@ -1,2 +1,11 @@
+# Scripts que usan "base/net" para conectarse a un perfil.
 net_*
+
+# Scripts que usan "base/start" para iniciar uno o más servicios y puertos.
 start-*
+
+# Scripts que usan "base/diff-sd" para sincronizar dos directorios.
+diff-*
+
+# Scripts de prueba.
+test-*
