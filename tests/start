@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#region Constantes
+start="$HOME/bin/base/start"
+#endregion
+
+#region Tests
+_test "$start WWWW" 6
+_test "$start -p WWWW" 5
+_test "$start 70000" 4
+_test "$start -p 70000" 4
+_test "$start WWW" 0
+_test "$start -p WWW" 0
+_test "$start docker" 0
+_test "$start -s docker" 0
+_test "$start" 7
+_test "$start dbus" 7
+#endregion
