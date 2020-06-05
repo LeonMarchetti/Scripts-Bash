@@ -1,0 +1,29 @@
+#!/bin/bash
+
+#region Colores
+CLR_AMAR="\e[93m"
+CLR_ROJO="\e[91m"
+CLR_VERD="\e[92m"
+CLR_FIN="\e[m"
+#endregion
+
+main() {
+    local salida
+    local codigo
+
+    salida=$(echo "q" | $1 2>&1)
+    codigo=$?
+
+    if [ $codigo -eq "$2" ]; then
+        echo -e "${CLR_VERD}● Éxito${CLR_FIN}\t$2 == ${codigo}\t${CLR_AMAR}$1${CLR_FIN}"
+        return 0
+    else
+        echo -e "${CLR_ROJO}● Falló${CLR_FIN}\t$2 != ${codigo}\t${CLR_AMAR}$1${CLR_FIN}"
+        echo
+        echo $salida
+        echo
+        return 1
+    fi
+}
+
+main "$@"
