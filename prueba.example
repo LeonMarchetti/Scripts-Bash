@@ -37,4 +37,9 @@ _out() {
 _success() {
     echo -e "${ERASE}${CLR_VERD}$1${CLR_FIN}"
 }
+
+line() {
+    printf '─%.0s' $(seq 1 $(tput cols))
+    echo
+}
 #endregion
