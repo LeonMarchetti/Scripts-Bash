@@ -7,19 +7,28 @@ fi
 # Crea una especie de "sesión" para poder iniciar servicios y abrir puertos en
 # el firewall para después poder terminarlos y cerrarlos al terminar de
 # usarlos.
-# Modo de empleo: start -s servicio1 servicio2 -p puerto1 puerto2
+# Modo de empleo: start [servicio/puerto] -s servicio1 servicio2 -p puerto1 puerto2
 # Todos los argumentos detrás de una opción "-s" se tratan como nombres de
 # servicios y detrás de "-p" como puertos.
+# Si se especifican servicios o puertos antes de cualquier opción entonces el
+# script "adivina" si se trata de un servicio o puerto.
 # Errores:
 #   1   UFW no está instalado.
 #   2   Se ingresó una opción desconocida.
 #   3   Alguno de los servicios no existe.
+#   4   Número de puerto inválido.
+#   5   Nombre de aplicación incorrecto de UFW.
+#   6   No existe el servicio o aplicación de puerto UFW.
 
 #region Colores
 CLR_AMAR="\e[93m"
 CLR_VERD="\e[92m"
 CLR_ROJO="\e[91m"
 CLR_FIN="\e[m"
+#endregion
+
+#region Constantes
+RE_NUM='^[0-9]+$'
 #endregion
 
 #region Globales
@@ -71,6 +80,7 @@ procesar_argumentos() {
             -*) _error 2 "Opción desconocida ${CLR_AMAR}$1" ;;
             *)
                 case $flag in
+                    "") comprobar_argumento $1 ;;
                     SERVICIO) comprobar_servicio $1 ;;
                     PUERTO) comprobar_puerto $1 ;;
                     *) echo -e "Ignorando argumento ${CLR_AMAR}$1${CLR_FIN}"
@@ -79,6 +89,24 @@ procesar_argumentos() {
         esac
         shift
     done
+}
+
+comprobar_argumento() {
+    local argumento=$1
+
+    if [[ $argumento =~ $RE_NUM ]]; then
+        comprobar_puerto "$argumento"
+    else
+        if servicio_existe "$argumento"; then
+            comprobar_servicio "$argumento"
+        else
+            if ufw_app_existe "$argumento"; then
+                comprobar_puerto "$argumento"
+            else
+                _error 6 "No existe servicio o puerto ${CLR_AMAR}$argumento${CLR_ROJO}"
+            fi
+        fi
+    fi
 }
 
 comprobar_servicio() {
@@ -110,14 +138,28 @@ servicio_esta_activo() {
 comprobar_puerto() {
     local puerto=$1
 
+    if [[ $puerto =~ $RE_NUM ]]; then
+        if [ $puerto -le 0 ] || [ $puerto -ge 65536 ]; then
+            _error 4 "Número de puerto ${CLR_AMAR}$puerto${CLR_ROJO} inválido"
+        fi
+    else
+        if ! ufw_app_existe "$puerto"; then
+            _error 5 "Nombre de aplicación ${CLR_AMAR}$puerto${CLR_ROJO} incorrecto"
+        fi
+    fi
+
     case `ufw status | grep "$puerto [^(]" | grep -Eo "(ALLOW|DENY)"` in
         "ALLOW")
             echo -e "El puerto ${CLR_AMAR}$puerto${CLR_FIN} ya estaba permitido, ignorando..." ;;
-        "DENY")
+        "DENY"|"")
             puertos+=($puerto) ;;
         *)
             echo -e "${CLR_ROJO}Estado de puerto ${CLR_AMAR}$puerto${CLR_ROJO} desconocido${CLR_FIN}" ;;
     esac
+}
+
+ufw_app_existe() {
+    ufw app list | grep -q "$1"
 }
 
 iniciar() {
