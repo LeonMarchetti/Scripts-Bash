@@ -19,6 +19,7 @@ fi
 #   4   Número de puerto inválido.
 #   5   Nombre de aplicación incorrecto de UFW.
 #   6   No existe el servicio o aplicación de puerto UFW.
+#   7   Ningún servicio o puerto especificado.
 
 #region Colores
 CLR_AMAR="\e[93m"
@@ -42,6 +43,8 @@ puertos=()
 main() {
     comprobar_ufw
     procesar_argumentos "$@"
+    comprobar_arreglos
+
     trap terminar EXIT
     iniciar
 
@@ -160,6 +163,12 @@ comprobar_puerto() {
 
 ufw_app_existe() {
     ufw app list | grep -q "$1"
+}
+
+comprobar_arreglos() {
+    if [ ${#servicios[@]} -eq 0 ] && [ ${#puertos[@]} -eq 0 ]; then
+        _error 7 "Ningún servicio o puerto especificado"
+    fi
 }
 
 iniciar() {
