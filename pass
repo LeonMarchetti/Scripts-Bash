@@ -5,14 +5,51 @@ UPPER="A-Z"
 LOWER="a-z"
 NUMBERS="0-9"
 SYMBOLS="!@#$%&*()?{}[]:;|_='\-"
+
+CLR_ROJO="\e[91m"
+CLR_FIN="\e[m"
 #endregion
 
+_error() {
+    echo -e "${CLR_ROJO}$(basename "$0"): $1${CLR_FIN}" >&2
+}
+
 main() {
-    caracteres="$UPPER$LOWER$NUMBERS$SYMBOLS"
-    cantidad=$(($RANDOM % 5 + 5))
+    local caracteres=$(procesar_argumentos $@)
+    if [ -z "$caracteres" ]; then
+        return 1
+    fi
+    generar_contraseñas "$caracteres"
+}
+
+procesar_argumentos() {
+    if [ "$1" ]; then
+        local an=
+        while [ "$1" ]; do
+            case "$1" in
+                -an) echo -n "$UPPER$LOWER$NUMBERS" ;;
+                -may) echo -n "$UPPER" ;;
+                -min) echo -n "$LOWER" ;;
+                -num) echo -n "$NUMBERS" ;;
+                -sym) echo -n "$SYMBOLS" ;;
+                *) _error "argumento $1 desconocido"
+            esac
+            shift
+        done
+    else
+        echo "$UPPER$LOWER$NUMBERS$SYMBOLS"
+    fi
+}
+
+generar_contraseñas() {
+    local caracteres="$1"
+    local cantidad=$(($RANDOM % 5 + 5))
+    local tamano
+
     for (( i=0; i<$cantidad; i++ )); do
         tamano=$(($RANDOM % 8 + 8))
-        head /dev/urandom | tr -dc $caracteres | head -c $tamano ; echo
+        head /dev/urandom | tr -dc $caracteres | head -c $tamano
+        echo
     done
 }
 
