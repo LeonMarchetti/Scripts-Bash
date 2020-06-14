@@ -3,6 +3,7 @@
 #region Constantes
 URL_MIRRORLIST="https://www.archlinux.org/mirrorlist/?country=all&protocol=http&protocol=https&ip_version=4"
 FILE="/tmp/mirrorlist.txt"
+TEST_LIST="./test/testlist.txt"
 PING_COUNT=5
 ERASE="\e[K"
 RE_MIRROR="(.*)\\s+(.*)"
@@ -23,6 +24,11 @@ _error() {
     exit $1
 }
 
+_success() {
+    printf "${ERASE}%s: ${CLR_VERD}%s${CLR_FIN}\n" "$1" "$2"
+}
+#endregion
+
 main() {
     obtener_lista || _error 1 "no se pudo obtener la lista de mirrors"
     procesar_lista
@@ -35,40 +41,30 @@ obtener_lista() {
     echo -en "Obteniendo lista de mirrors ${CLR_AMAR}${URL_MIRRORLIST:0:$size}${CLR_FIN}...\r"
 
     wget "$URL_MIRRORLIST" -O "$FILE" > /dev/null 2>&1
+
+    # FILE="$TEST_LIST"
 }
 
 procesar_lista() {
     local min_avg=400
     local min_url=
     local min_pais=
-    local url
-
-    local mirrors=$(cat $FILE | awk -F '/' '
-        $1 ~ /^##/ {
-            gsub("## ", "")
-            pais=$0
-        }
-        $1 ~ /Server/ {
-            printf "%s\t%s\n", pais, $3
-        }
-    ')
 
     IFS=$'\n'
-    for linea in $mirrors; do
+    for linea in $(obtener_mirrors); do
         if [[ $linea =~ $RE_MIRROR ]]; then
             local pais="${BASH_REMATCH[1]}"
             local url="${BASH_REMATCH[2]}"
 
             printf "${ERASE}Pingeando ${CLR_AMAR}%s${CLR_FIN} (%s)...\r" "$url" "$pais"
 
-            local avg_time=$(ping -c $PING_COUNT $url |
-                             tail -1 |
-                             awk -F '/' '{ print $5 }')
+            local avg_time=$(probar_mirror "$url")
+
             if [ $avg_time ]; then
-                if [ $(echo "$avg_time < $min_avg" | bc -l) -eq 1 ]; then
+                if es_menor $avg_time $min_avg; then
                     min_avg=$avg_time
                     min_url=$url
-                    min_pais=$pais
+                    min_pais="$pais"
                 fi
             fi
         else
@@ -81,9 +77,29 @@ procesar_lista() {
     _success "Tiempo" "$min_avg ms"
 }
 
-_success() {
-    printf "${ERASE}%s: ${CLR_VERD}%s${CLR_FIN}\n" "$1" "$2"
+obtener_mirrors() {
+    # Obtiene la lista de mirrors, almacenados en el archivo temporal.
+    cat "$FILE" | awk -F '/' '
+        $1 ~ /^##/ {
+            gsub("## ", "")
+            pais=$0
+        }
+        $1 ~ /Server/ {
+            printf "%s\t%s\n", pais, $3
+        }
+    '
 }
-#endregion
+
+probar_mirror() {
+    # Hace ping a la url y se obtiene el tiempo promedio.
+    # $1: url
+    ping -c $PING_COUNT "$1" |
+        tail -1 |
+        awk -F '/' '{ print $5 }'
+}
+
+es_menor() {
+    [ $(echo "$1 < $2" | bc -l) -eq 1 ]
+}
 
 main "$@"
