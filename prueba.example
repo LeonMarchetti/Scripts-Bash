@@ -42,4 +42,8 @@ line() {
     printf '─%.0s' $(seq 1 $(tput cols))
     echo
 }
+
+comparar() {
+    [ $(echo "$1 $2 $3" | bc -l) -eq 1 ]
+}
 #endregion
