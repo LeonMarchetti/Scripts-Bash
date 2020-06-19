@@ -5,7 +5,7 @@ net_*
 start-*
 
 # Scripts que usan "base/diff-sd" para sincronizar dos directorios.
-diff-*
+/diff-*
 
 # Scripts de prueba.
 test-*
