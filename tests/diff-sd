@@ -1,0 +1,93 @@
+#!/bin/bash
+
+#region Constantes
+diff_sd="$HOME/bin/base/diff-sd"
+
+dir1="$HOME/Baul/diff-test-1"
+dir2="$HOME/Baul/diff-test-2"
+#endregion
+
+#region Funciones
+prepare_test_dir() {
+    mkdir "$dir1" 2> /dev/null
+    mkdir "$dir2" 2> /dev/null
+    rm $dir1/* 2> /dev/null
+    rm $dir2/* 2> /dev/null
+}
+
+run_test() {
+    check_dir
+    $diff_sd "$dir1" "$dir2"
+    check_dir
+}
+
+make_file() {
+    # $1 -> Directory name
+    # $2 -> File name
+    # $3 -> File content
+    if [ ! -f "$1/$2" ]; then
+        echo "$3" > "$1/$2"
+    fi
+}
+
+line() {
+    printf '─%.0s' $(seq 1 $(tput cols))
+    echo
+}
+
+show_dir() {
+    echo -e "\e[95m${1##*/}\e[m:"
+    for file in "$1"/*; do
+        local file_name=${file##*/}
+        local first_line=$(head -n 1 "$file")
+        echo -e "\t${file_name}\t[\e[94m${first_line}\e[m]"
+    done
+}
+
+check_dir() {
+    line
+    show_dir "$dir1"
+    show_dir "$dir2"
+    line
+}
+#endregion
+
+#region Tests Functions
+test() {
+    # mkdir "$dir1" 2> /dev/null
+    # log "Antes:"
+    # ls "$dir1"
+    # rm $dir1/*
+    # log "Después:"
+    # ls "$dir1"
+
+    # make_file "$dir1" "file1" "Alfa beta"
+    # make_file "$dir1" "file2" "Charlie delta"
+    # make_file "$dir2" "file3" "Echo foxtrot"
+    check_dir
+}
+
+test_1() {
+    make_file "$dir1" "file1" "Hola Mundo"
+}
+test_2() {
+    make_file "$dir1" "file1" "Alfa beta"
+    make_file "$dir2" "file2" "Charlie delta"
+}
+test_3() {
+    make_file "$dir1" "file" "Alfa beta"
+    make_file "$dir2" "file" "Charlie delta"
+}
+#endregion
+
+#region Tests
+clear
+prepare_test_dir
+
+# test
+# test_1
+# test_2
+test_3
+
+run_test
+#endregion
