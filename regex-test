@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# regex-test - Prueba de expresiones regulares.
+# Se ingresa un archivo, donde se colocan las expresiones regulares a probar y
+# el texto al cual comparar.
+# Las expresiones regulares se colocan en su propia linea, poniendo primero
+# "r>". Luego todas las lineas por debajo son comparadas con esta expresión
+# hasta que aparezca la próxima.
+# Se ignoran las líneas en blanco.
+
+# Modo de empleo: regex-test ARCHIVO
+# Errores:
+#   1   El archivo no existe.
+
+#region Colores
+CLR_ROJO="\e[91m"
+CLR_VERD="\e[92m"
+CLR_AMAR="\e[93m"
+CLR_AZUL="\e[94m"
+CLR_ROSA="\e[95m"
+CLR_CYAN="\e[96m"
+CLR_BLAN="\e[97m"
+CLR_FIN="\e[m"
+#endregion
+
+#region Constants
+REGEX_LINE_START="r>"
+#endregion
+
+#region Functions
+_error() {
+    if [ "$2" ]; then
+        echo -e "${ERASE}${CLR_ROJO}$(basename "$0"): $2${CLR_FIN}" >&2
+    fi
+    exit $1
+}
+
+_line() {
+    printf '─%.0s' $(seq 1 $(tput cols))
+    echo
+}
+
+_fail() {
+    echo -e "${ERASE}● ${CLR_ROJO}$@${CLR_FIN}"
+}
+
+_success() {
+    echo -e "${ERASE}● ${CLR_VERD}$@${CLR_FIN}"
+}
+
+_show_regex() {
+    echo -e "${ERASE}${CLR_CYAN}$@${CLR_FIN}"
+}
+
+_show_match() {
+    echo -e "${ERASE}\t● $1° [${CLR_AMAR}$2${CLR_FIN}]"
+}
+#endregion
+
+main() {
+    if [ ! -f "$1" ]; then
+        _error 1 "el archivo no existe"
+    fi
+
+    local file="$1"
+    local regex=
+
+    while read line; do
+        if [ "$line" ]; then
+            if [[ $line == $REGEX_LINE_START* ]]; then
+                _line
+                regex="${line:2}"
+                _show_regex "$regex"
+            else
+                if [[ $line =~ $regex ]]; then
+                    _success "$line"
+
+                    local match_count=$((${#BASH_REMATCH[@]} - 1))
+                    for seq in $(seq 1 $match_count); do
+                        _show_match "$seq" "${BASH_REMATCH[$seq]}"
+                    done
+                else
+                    _fail "$line"
+                fi
+            fi
+        fi
+    done <"$file"
+    _line
+}
+
+main "$@"

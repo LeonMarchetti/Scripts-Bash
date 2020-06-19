@@ -22,6 +22,7 @@ Scripts escritos en Bash.
 * **npm-init**: Inicia un proyecto npm con algunas configuraciones iniciales.
 * **pass**: Generador de contraseñas.
 * **project**: Abre pestañas de una terminal para ejecutar varios comandos a la vez.
+* **regex-test**: Prueba de expresiones regulares, desde un archivo.
 * **subdir**: Calcula el tamaño recursivo de cada archivo y subdirectorio en el directorio indicado.
 * **touchpad**: Activa/desactiva el touchpad.
 * **wifi**: Wrapper para `wifi-menu` indicando la interfaz y al terminar el programa consultar la dirección IP resultante.
