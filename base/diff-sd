@@ -3,11 +3,13 @@
 # diff-sd - Comparar directorios según sus archivos.
 # Se toma el primer directorio como el directorio maestro y el segundo como
 # esclavo, el cual se va a tratar de terminar con el mismo contenido que el
-# primer directorio.
+# primer directorio. Se ignoran los subdirectorios de ambos directorios.
 
-# Si hay un archivo que está en dir1 pero no en dir2 entonces se copia del primero al otro.
+# Si hay un archivo que está en dir1 pero no en dir2 entonces se copia del
+# primero al otro.
 # Si un archivo está en dir1 y en dir2 y son iguales entonces se ignoran.
-# Si dos archivos con el mismo nombre está en dir1 y en dir2 se copia el de dir1 a dir2.
+# Si dos archivos con el mismo nombre está en dir1 y en dir2 se copia el de
+# dir1 a dir2.
 # Si hay un archivo que está en dir2 pero no en dir1 entonces se borra.
 
 # Errores:
@@ -19,7 +21,7 @@
 
 #region Constantes
 ERASE="\e[K"
-REGEX_DIST="Los ficheros binarios (.*) y .* son distintos"
+REGEX_DIST="Los ficheros (binarios )?(.*) y .* son distintos"
 REGEX_SOLO="Sólo en (.*): (.*)"
 #endregion
 
@@ -55,6 +57,12 @@ _error() {
 _mostrar_dir() {
     echo -e "${CLR_AMAR}$1${CLR_FIN}:"
 }
+
+_borrar() {
+    # Borra un archivo.
+    # rm $@
+    gio trash $@ # Envía el archivo a la papelera.
+}
 #endregion
 
 main() {
@@ -70,6 +78,7 @@ main() {
     _echo_r "Calculando diferencias"
     local diff=$(calcular_diferencias "$dir1" "$dir2")
     separar_archivos "$dir1" "$dir2" "$diff"
+
     copiar "$dir1" "$dir2"
     borrar "$dir2"
 }
@@ -80,7 +89,7 @@ existe_directorio() {
 }
 
 calcular_diferencias() {
-    diff "$1" "$2"
+    diff --color=always -q "$1" "$2"
 }
 
 separar_archivos() {
@@ -97,23 +106,23 @@ separar_archivos() {
             archivo=${BASH_REMATCH[2]}
             case $dir in
                 $dir1)
-                    if [[ ! -d "$dir1/$archivo" ]] ; then
+                    if [[ ! -d "${dir1}/${archivo}" ]] ; then
                         solo_dir1+=($archivo)
                     fi ;;
                 $dir2)
-                    if [[ ! -d "$dir2/$archivo" ]] ; then
+                    if [[ ! -d "${dir2}/${archivo}" ]] ; then
                         solo_dir2+=($archivo)
                     fi ;;
                 *) _error 2 "directorio desconocido: $dir"
             esac
         else
             if [[ $linea =~ $REGEX_DIST ]]; then
-                archivo=$(echo ${BASH_REMATCH[1]} | grep -Eo "[^/]+$")
-                if [[ ! -d "$dir1/$archivo" ]] ; then
+                archivo=$(echo ${BASH_REMATCH[2]} | grep -Eo "[^/]+$")
+                if [[ ! -d "${dir1}/${archivo}" ]] ; then
                     solo_dir1+=($archivo)
                 fi
             else
-                _error 5 "error de regex: $linea"
+                _error 5 "error de regex: '$linea'"
             fi
         fi
     done
@@ -128,6 +137,16 @@ copiar() {
     _mostrar_dir "$dir1"
     for archivo in ${solo_dir1[@]}; do
         _echo_r "Copiando" "$archivo"
+
+        # Compruebo si se trata de un archivo que está en ambos directorios
+        # pero son distintos y primero lo borro (para mandarlo a la papelera).
+        if [[ -f "${dir2}/${archivo}" ]] ; then
+            _echo_r "Borrando" "${dir2}/${archivo}"
+            _borrar "${dir2}/${archivo}" ||
+                _error 4 "falló borrar ${dir2}/${archivo}"
+            _echo "Borrado" "${archivo} en ${dir2}"
+        fi
+
         cp -f "${dir1}/${archivo}" "${dir2}/" ||
             _error 3 "falló copiar $archivo"
         _echo "Copiado" "$archivo"
@@ -142,7 +161,7 @@ borrar() {
     _mostrar_dir "$dir2"
     for archivo in ${solo_dir2[@]}; do
         _echo_r "Borrando" "$archivo"
-        rm "${dir2}/${archivo}" ||
+        _borrar "${dir2}/${archivo}" ||
             _error 4 "falló borrar $archivo"
         _echo "Borrado" "$archivo"
     done
