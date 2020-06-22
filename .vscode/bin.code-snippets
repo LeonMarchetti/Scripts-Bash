@@ -69,6 +69,15 @@
 		],
 		"description": "If Grep"
 	},
+	"If New Test": {
+		"prefix": "if",
+		"body": [
+			"if [[ $1 ]]; then",
+			"\t$2",
+			"fi"
+		],
+		"description": "If New Test"
+	},
 	"If Regex": {
 		"prefix": "if",
 		"body": [
@@ -80,6 +89,15 @@
 			"fi"
 		],
 		"description": "If Regex"
+	},
+	"If Test": {
+		"prefix": "if",
+		"body": [
+			"if [ $1 ]; then",
+			"\t$2",
+			"fi"
+		],
+		"description": "If Test"
 	},
 	"Local": {
 		"prefix": "local",
