@@ -9,6 +9,7 @@ Scripts escritos en Bash.
     * **net**: Wrapper para conectarse a una red con **netctl** en Arch Linux.
     * **start**: Crea una "sesión" para poder iniciar servicios (con **Systemctl**) y abrir puertos (con **UFW**) y cerrarlos cuando no se los necesite más.
 * **tests**: Scripts usados para probar los scripts hechos acá.
+* **_find**: Wrapper para el comando "fin".
 * **_test**: Comprueba el resultado de un comando.
 * **.bash_functions**: Funciones declaradas para usar en la terminal. Puse acá las utilidades que son más cortas.
 * **autoclicker**: Lanza repetidos clicks en la posición del cursor del mouse. Se ejecuta una vez para iniciar y otra vez para detenerlo.

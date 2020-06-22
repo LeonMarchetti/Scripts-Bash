@@ -1,0 +1,50 @@
+#!/bin/bash
+
+# _find - Wrapper del comando "find".
+# Modo de empleo: _find UBICACION PATRON
+
+#region Constantes
+CLR_DIR="\e[94m"
+CLR_FILE="\e[92m"
+CLR_PATH="\e[93m"
+CLR_FIN="\e[m"
+#endregion
+
+main() {
+    # $1: Ubicación a buscar.
+    # $2: Patrón del nombre del archivo a buscar.
+
+    local ubicacion="$1"
+    if [ "$ubicacion" == "." ]; then
+        ubicacion=$(pwd)
+    fi
+
+    for archivo in $(_find "$ubicacion" "$2"); do
+        mostrar_archivo "$archivo"
+    done
+}
+
+_find() {
+    # $1: Ubicación a buscar.
+    # $2: Patrón del nombre del archivo a buscar.
+    find "$1" -name "$2" 2>/dev/null
+}
+
+mostrar_archivo() {
+    local archivo=$1
+
+    local dir=${archivo%/*}
+    local nombre=${archivo##*/}
+    local path="${dir}/${nombre}"
+
+    local color=
+    if [ -d "$path" ]; then
+        color=${CLR_DIR}
+    else
+        color=${CLR_FILE}
+    fi
+
+    echo -e "${CLR_PATH}${dir}/${color}${nombre}${CLR_FIN}"
+}
+
+main "$@"
