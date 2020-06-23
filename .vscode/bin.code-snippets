@@ -109,6 +109,11 @@
 		"body": "log $1 \"$$1\"",
 		"description": "Log"
 	},
+	"Log Array": {
+		"prefix": "log",
+		"body": "log $1 \"${$1[@]}\"",
+		"description": "Log Array"
+	},
 	"Main": {
 		"prefix": "main",
 		"body": [
