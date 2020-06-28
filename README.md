@@ -27,3 +27,4 @@ Scripts escritos en Bash.
 * **subdir**: Calcula el tamaño recursivo de cada archivo y subdirectorio en el directorio indicado.
 * **touchpad**: Activa/desactiva el touchpad.
 * **wifi**: Wrapper para `wifi-menu` indicando la interfaz y al terminar el programa consultar la dirección IP resultante.
+* **ydl**: Wrapper para `youtube-dl`, para obtener el audio en formato MP3 de un video.

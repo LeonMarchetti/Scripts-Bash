@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# ydl - Wrapper para Youtube-DL
+# Descarga un video de YouTube(tm) y extra la pista de audio, en formato mp3.
+# Modo de empleo: ydl URL NOMBRE_ARCHIVO
+
+url="$1"
+filename="$2"
+format="mp3"
+
+youtube-dl -x --audio-format "$format" "$url" -o "${filename}"'.$(ext)s'
