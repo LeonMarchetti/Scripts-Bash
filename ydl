@@ -4,8 +4,12 @@
 # Descarga un video de YouTube(tm) y extra la pista de audio, en formato mp3.
 # Modo de empleo: ydl URL NOMBRE_ARCHIVO
 
-url="$1"
-filename="$2"
-format="mp3"
+main() {
+    declare -r url="$1"
+    declare -r filename="$2"
+    declare -r format="mp3"
 
-youtube-dl -x --audio-format "$format" "$url" -o "${filename}"'.$(ext)s'
+    youtube-dl -x --audio-format "$format" "$url" -o "${filename}"'.$(ext)s'
+}
+
+main "$@"
