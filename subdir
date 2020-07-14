@@ -4,7 +4,7 @@ main() {
     local dir=$(parsear_directorio "$@")
 
     if [ -z "$dir" ]; then
-        _error 1 "no existe el directorio"
+        _error 1 "no existe el directorio $dir"
     fi
 
     if [ -z "$(ls -A $dir 2> /dev/null )" ]; then
@@ -24,10 +24,10 @@ _error() {
 parsear_directorio() {
     # Si no se especifica, se procesa el directorio actual.
     if [[ -z $1 ]]; then
-        echo *
+        echo '*'
     else
         if [ -d $1 ]; then
-            echo $1/*
+            echo $1/'*'
         fi
     fi
 }
@@ -47,8 +47,12 @@ mostrar_subdirectorios() {
             COLOR = CLR_GIGAS
         }
         $2 !~ /^total$/ {
-            n = split($2, a, "/");
-            printf "%s%s%s\t%s\n", COLOR, $1, CLR_END, a[n]
+            # Primero imprimo el tamaño y después imprimo el nombre completo
+            # con espacios.
+            printf "%s%s%s\t", COLOR, $1, CLR_END
+            $1=""
+            n = split($0, a, "/")
+            printf "%s\n", a[n]
         }
         $2 ~ /^total$/ {
             print CLR_TOTAL $0 CLR_END
