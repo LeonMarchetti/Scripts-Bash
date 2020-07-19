@@ -22,6 +22,7 @@ Scripts escritos en Bash.
 * **log**: Script simple para hacer logging.
 * **npm-init**: Inicia un proyecto npm con algunas configuraciones iniciales.
 * **pass**: Generador de contraseñas.
+* **pip-outdated**: Wrapper de Pip para detectar paquetes de Python obsoletos y que no estén instalados por Pacman (Arch Linux).
 * **project**: Abre pestañas de una terminal para ejecutar varios comandos a la vez.
 * **regex-test**: Prueba de expresiones regulares, desde un archivo.
 * **subdir**: Calcula el tamaño recursivo de cada archivo y subdirectorio en el directorio indicado.
