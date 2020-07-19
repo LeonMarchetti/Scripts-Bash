@@ -13,3 +13,4 @@ function ls_grep {
 ls_grep ${HOME} $1
 ls_grep ${XDG_CONFIG_HOME} $1
 ls_grep ${XDG_DATA_HOME} $1
+ls_grep "${HOME}/.cache" $1
