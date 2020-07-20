@@ -1,39 +1,38 @@
 #!/bin/bash
 
-#region Constantes
-FILE="$HOME/Baul/prueba.txt"
-#endregion
-
-
 main() {
+    _echo_r "Cargando lista de paquetes obsoletos"
     lista=$(obtener_lista)
-    lista=$(filtrar_arch_linux $lista)
 
     for pkg in $lista; do
-        actualizar_paquete $pkg
+        _echo_r "Buscando \e[93m$pkg\e[m"
+        if [[ ! $(si_instalado_pacman $pkg) ]]; then
+            _echo_r "Actualizando \e[93m$pkg\e[m"
+            actualizar_paquete $pkg
+            echo -e "\e[KActualizado \e[93m$pkg\e[m."
+        fi
     done
+    _echo_r
+}
+
+_echo_r() {
+    echo -en "\e[K$1...\r"
 }
 
 obtener_lista() {
     # Obtiene la lista de paquetes desactualizados de Python.
     # Hay que quitar las dos primeras líneas, que son del encabezado.
-    # pip list --outdated | awk '
-    cat $FILE | tail -n +3 | awk '{ print $1 }'
+    pip list --outdated | tail -n +3 | awk '{ print $1 }'
 }
 
-filtrar_arch_linux() {
-    # Filtra los paquetes instalados por paquetes de Arch Linux
-    for pkg in $lista; do
-        qs=$(pacman -Qqs $pkg)
-        if [ ! "$qs" ]; then
-            echo $pkg
-        fi
-    done
+si_instalado_pacman() {
+    # $1: Paquete Pip
+    pacman -Qqs $1
 }
 
 actualizar_paquete() {
-    log pkg $pkg
-    pip install $pkg -qU
+    # $1: Paquete Pip
+    pip install $1 -qU
 }
 
 main "$@"
