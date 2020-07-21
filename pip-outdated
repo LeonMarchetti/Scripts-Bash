@@ -4,35 +4,47 @@ main() {
     _echo_r "Cargando lista de paquetes obsoletos"
     lista=$(obtener_lista)
 
+    result=0
+
     for pkg in $lista; do
         _echo_r "Buscando \e[93m$pkg\e[m"
-        if [[ ! $(si_instalado_pacman $pkg) ]]; then
+        local busq=$(consulta_pacman $pkg)
+        if [ "$busq" ]; then
+            IFS=
+            echo -e "Ignorando \e[93m$pkg\e[m (\e[92m${busq/$'\n'/ }\e[m)"
+        else
             _echo_r "Actualizando \e[93m$pkg\e[m"
-            actualizar_paquete $pkg
-            echo -e "\e[KActualizado \e[93m$pkg\e[m."
+            if actualizar $pkg; then
+                echo -e "\e[KActualizado \e[93m$pkg\e[m."
+            else
+                echo -e "\e[K\e[91mNo se pudo actualizar \e[93m$pkg\e[m"
+                result=1
+            fi
         fi
     done
     _echo_r
+    return $result
 }
 
 _echo_r() {
+    # $1: Texto
     echo -en "\e[K$1...\r"
+}
+
+consulta_pacman() {
+    # $1: Paquete Pip
+    pacman -Qqs $1 | grep -i $1
+}
+
+actualizar() {
+    # $1: Paquete Pip
+    pip install $1 > /dev/null
 }
 
 obtener_lista() {
     # Obtiene la lista de paquetes desactualizados de Python.
     # Hay que quitar las dos primeras líneas, que son del encabezado.
     pip list --outdated | tail -n +3 | awk '{ print $1 }'
-}
-
-si_instalado_pacman() {
-    # $1: Paquete Pip
-    pacman -Qqs $1
-}
-
-actualizar_paquete() {
-    # $1: Paquete Pip
-    pip install $1 -qU
 }
 
 main "$@"
