@@ -1,0 +1,58 @@
+#!/bin/bash
+
+#region Constantes
+RE_LINE="^([^:]+):([0-9]+):\s*(.*)"
+#endregion
+
+#region Colores
+CLR_ROJO="\e[91m"
+CLR_VERD="\e[92m"
+CLR_AMAR="\e[93m"
+CLR_CYAN="\e[96m"
+CLR_FIN="\e[m"
+#endregion
+
+
+main() {
+    IFS=
+
+    local resultado=$(grep -rn . -e ".*$1.*" --exclude-dir="node_modules" --exclude-dir=".git" --exclude-dir="build")
+
+    resultado=$(procesar "$1" "$resultado")
+    echo $resultado
+}
+
+_error() {
+    if [ "$2" ]; then
+        echo -e "${ERASE}${CLR_ROJO}buscar: $2${CLR_FIN}" >&2
+    fi
+    exit $1
+}
+
+procesar() {
+    # $1: Texto de búsqueda
+    # $2: Resultado de grep
+    IFS=$'\n'
+    local archivo_actual=
+    for linea in $2; do
+        if [[ $linea =~ $RE_LINE ]]; then
+            local archivo=${BASH_REMATCH[1]} 
+            local numLinea=${BASH_REMATCH[2]}
+            local texto=${BASH_REMATCH[3]//$1/${CLR_CYAN}$1${CLR_FIN}}
+
+            # Pongo el nombre de archivo como título para separar los
+            # resultados en un mismo archivo.
+            if [[ $archivo != $archivo_actual ]]; then
+                echo -e "${CLR_AMAR}${archivo}${CLR_FIN}"
+                archivo_actual=$archivo
+            fi
+
+            # Imprimo el número de línea y el texto encontrado:
+            echo -e "${CLR_VERD}${numLinea}${CLR_FIN}\t${texto}"
+        else
+            _error 1 "error de regex: $linea"
+        fi
+    done
+}
+
+main "$@"
