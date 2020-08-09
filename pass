@@ -27,7 +27,7 @@ procesar_argumentos() {
         local an=
         while [ "$1" ]; do
             case "$1" in
-                -an) echo -n "$UPPER$LOWER$NUMBERS" ;;
+                -an) echo -n "$NUMBERS$UPPER$LOWER" ;;
                 -may) echo -n "$UPPER" ;;
                 -min) echo -n "$LOWER" ;;
                 -num) echo -n "$NUMBERS" ;;
