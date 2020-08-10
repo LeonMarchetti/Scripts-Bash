@@ -16,7 +16,7 @@ CLR_FIN="\e[m"
 main() {
     IFS=
 
-    local resultado=$(grep -rn . -e ".*$1.*" --exclude-dir="node_modules" --exclude-dir=".git" --exclude-dir="build")
+    local resultado=$(grep -rn . -e ".*$1.*" --exclude-dir={node_modules,build,.git})
 
     resultado=$(procesar "$1" "$resultado")
     echo $resultado
