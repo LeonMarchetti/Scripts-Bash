@@ -13,3 +13,7 @@ function run {
     "$@" &> /dev/null &
 }
 
+# Crear directorio y moverse adentro
+function md {
+    mkdir "$1" && cd "$1"
+}
