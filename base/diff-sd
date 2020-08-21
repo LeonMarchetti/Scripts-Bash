@@ -20,9 +20,9 @@
 #   5   No coincidió la linea con las expresiones regulares.
 
 #region Constantes
-ERASE="\e[K"
-REGEX_DIST="Los ficheros (binarios )?(.*) y .* son distintos"
-REGEX_SOLO="Sólo en (.*): (.*)"
+readonly DEBUG=
+readonly ERASE="\e[K"
+readonly REGEX_SOLO="Sólo en (.*): (.*)"
 #endregion
 
 #region Colores
@@ -61,11 +61,22 @@ _mostrar_dir() {
 _borrar() {
     # Borra un archivo.
     # rm $@
+    [ $DEBUG ] && return
     gio trash $@ # Envía el archivo a la papelera.
+}
+
+_copiar() {
+    # Copia un archivo
+    # $1: dir/archivo   origen
+    # $2: dir/          destino
+    [ $DEBUG ] && return
+    cp -f "$1" "$2"
 }
 #endregion
 
 main() {
+    [ $DEBUG ] && echo "Inicio diff-sd"
+
     existe_directorio "$1" ||
         _error 1 "'$1' no es un directorio."
 
@@ -80,7 +91,11 @@ main() {
     separar_archivos "$dir1" "$dir2" "$diff"
 
     copiar "$dir1" "$dir2"
+    echo
     borrar "$dir2"
+
+    [ $DEBUG ] && echo "Fin diff-sd"
+    return 0
 }
 
 existe_directorio() {
@@ -115,15 +130,6 @@ separar_archivos() {
                     fi ;;
                 *) _error 2 "directorio desconocido: $dir"
             esac
-        else
-            if [[ $linea =~ $REGEX_DIST ]]; then
-                archivo=$(echo ${BASH_REMATCH[2]} | grep -Eo "[^/]+$")
-                if [[ ! -d "${dir1}/${archivo}" ]] ; then
-                    solo_dir1+=($archivo)
-                fi
-            else
-                _error 5 "error de regex: '$linea'"
-            fi
         fi
     done
 }
@@ -147,7 +153,7 @@ copiar() {
             _echo "Borrado" "${archivo} en ${dir2}"
         fi
 
-        cp -f "${dir1}/${archivo}" "${dir2}/" ||
+        _copiar "${dir1}/${archivo}" "${dir2}/" ||
             _error 3 "falló copiar $archivo"
         _echo "Copiado" "$archivo"
     done

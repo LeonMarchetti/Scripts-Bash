@@ -17,8 +17,14 @@ prepare_test_dir() {
 
 run_test() {
     check_dir
-    $diff_sd "$dir1" "$dir2"
+    $diff_sd "$dir1" "$dir2" || echo_rc $?
     check_dir
+}
+
+echo_rc() {
+    # $1: Código de retorno de diff_sd
+    line
+    echo "Retorno: $1"
 }
 
 make_file() {
@@ -86,8 +92,8 @@ prepare_test_dir
 
 # test
 # test_1
-# test_2
-test_3
+test_2
+# test_3
 
 run_test
 #endregion
