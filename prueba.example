@@ -5,6 +5,7 @@ if [ $EUID != 0 ]; then
 fi
 
 #region Constantes
+DEBUG=1
 ERASE="\e[K"
 OUT="prueba.txt"
 #endregion
