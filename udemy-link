@@ -1,0 +1,10 @@
+#!/bin/bash
+# $1: URL
+url=$(echo $1 | sed "s/.*murl=//g")
+
+url="${url//%2F//}"
+url="${url//%3A/:}"
+url="${url//%3D/=}"
+url="${url//%3F/?}"
+
+xdg-open "$url"
