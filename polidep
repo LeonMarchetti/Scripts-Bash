@@ -1,0 +1,6 @@
+#!/bin/bash
+PROJ_DIR="/home/leonardo/Devel/Net/PolidepBackend"
+gnome-terminal -t "Polidep" --tab --working-directory=$PROJ_DIR
+gnome-terminal -t "BackEnd" --tab --working-directory=$PROJ_DIR/API
+gnome-terminal -t "FrontEnd" --tab --working-directory=$PROJ_DIR/ClientApp
+clear
