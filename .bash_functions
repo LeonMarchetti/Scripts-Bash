@@ -17,3 +17,10 @@ function run {
 function md {
     mkdir "$1" && cd "$1"
 }
+
+function devel_python() {
+    cd ~/Devel/Python
+    source ~/Devel/Python/.venv/bin/activate
+    alias prueba='py prueba.py'
+    clear
+}
