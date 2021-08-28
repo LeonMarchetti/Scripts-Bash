@@ -58,7 +58,11 @@ main() {
         iniciar_perfil "$perfil"
     fi
 
-    detectar_direccion_ip
+    _echo_r "Detectando dirección IP..."
+    ip=$(detectar_direccion_ip)
+    _echo "Dirección IP:" "$ip"
+
+    editar_archivo "$ip"
 }
 
 existe_perfil() {
@@ -119,19 +123,28 @@ iniciar_perfil() {
 }
 
 detectar_direccion_ip() {
+    # Detecta la dirección IP privada del sistema.
     local ip
 
-    _echo_r "Detectando dirección IP..."
     while :; do
-        ip=`ip -br -c a | \
+        ip=$(ip -br -c a | \
             grep -Eo "([0-9]{1,3}[\.]){3}[0-9]{1,3}" | \
-            grep -e ^192. -e ^10. -e ^168.`
+            grep -e ^192. -e ^10. -e ^168.)
         if [ "$ip" ]; then
             break
         fi
         sleep 0.1
     done
-    _echo "Dirección IP:" "$ip"
+
+    echo $ip
+}
+
+editar_archivo() {
+    # Edita un archivo con la nueva dirección IP privada del sistema.
+    # $1: Dirección IP
+
+    var="REACT_APP_API_URL"
+    sed -i "0,/$var/{s/$var=.*/$var=http:\/\/$1:3000/}" "/srv/http/simulador-carrera/Cliente/.env"
 }
 
 main "$@"

@@ -7,6 +7,7 @@ Scripts escritos en Bash.
 * **base**: Scripts usados como base para scripts más personalizados.
     * **diff-sd**: Analiza los archivos que estén en un directorio pero no en el otro y los copia.
     * **net**: Wrapper para conectarse a una red con **netctl** en Arch Linux.
+        * Permite editar archivos para actualizar la nueva dirección IP del sistema.
     * **start**: Crea una "sesión" para poder iniciar servicios (con **Systemctl**) y abrir puertos (con **UFW**) y cerrarlos cuando no se los necesite más.
 * **tests**: Scripts usados para probar los scripts hechos acá.
 * **_find**: Wrapper para el comando "fin".
