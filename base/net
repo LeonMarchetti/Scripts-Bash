@@ -145,6 +145,9 @@ editar_archivo() {
 
     var="REACT_APP_API_URL"
     sed -i "0,/$var/{s/$var=.*/$var=http:\/\/$1:3000/}" "/srv/http/simulador-carrera/Cliente/.env"
+
+    var="DB_HOST"
+    sed -i "0,/$var/{s/$var=.*/$var=$1/}" "/home/leonardo/Devel/Cidetic/UserFrosting/app/.env"
 }
 
 main "$@"
