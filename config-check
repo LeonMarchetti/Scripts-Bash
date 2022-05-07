@@ -3,7 +3,7 @@
 function ls_grep {
     # Para conservar los saltos de linea
     IFS=
-    grep_out=$(ls -1a $1 | grep $2)
+    grep_out=$(ls -1a $1 | grep -i $2)
     if [ "$grep_out" ] ; then
         echo -e "\e[93m$1:\e[m"
         echo $grep_out
