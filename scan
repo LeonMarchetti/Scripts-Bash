@@ -1,0 +1,2 @@
+#!/bin/bash
+scanimage --device "hpaio:/usb/Deskjet_F4400_series?serial=BR02QGC14M05C5" --format=jpeg --output-file "$1" --progress
