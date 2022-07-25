@@ -1,0 +1,12 @@
+# Read token
+echo -n "Token: "
+read -s token
+echo
+
+if [ ! $token ]; then
+    echo -e "\033[91mNo se ingresó el token\033[m" >&2
+    exit 1
+fi
+
+repo=$(git remote get-url origin | grep -Po "(?<=github.com).*")
+git remote set-url origin "https://$token@github.com$repo"
