@@ -1,0 +1,23 @@
+#!/bin/sh
+
+error() {
+    echo -n "\033[91m$@\033[m\n" >&2
+    exit 1
+}
+
+command_exists() {
+    command -v "$1" 1>/dev/null || error "El comando '$1' no existe"
+}
+
+command_exists 'pdftk'
+
+OUTPUT_FILE='haberes_dgs.pdf'
+
+case "$1" in
+    "dgs")  NUM=1 ;;
+    "cid"*) NUM=2 ;;
+    *)      error "Opción $1 desconocida"
+esac
+
+pdftk "A=$2" "B=$3" cat "A$NUM" "B$NUM" output "$OUTPUT_FILE" && \
+    echo "Archivo '$OUTPUT_FILE' creado."
