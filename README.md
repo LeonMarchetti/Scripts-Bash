@@ -17,6 +17,8 @@ Scripts escritos en Bash.
     * Dependencias: **xdotool**
 * **check-mirrors**: Comprueba cual es la mirror de los repositorios de Arch Linux más rápida.
 * **config-check**: Busca en los directorios `$HOME`, `$XDG_CONFIG_HOME` y `$XDG_DATA_HOME` los archivos de configuración que coincidan con algún patrón en sus nombres. Útil para cuando quiero borrar archivos remanentes de la desinstalación de algún programa.
+* **git_set_origin**: Cambia la dirección del remoto "origin" para incluir un token de acceso personal (Personal Access Token).
+    * Si el repositorio está subido a Gitlab entonces va a pedir el nombre/etiqueta asignado al token así que se ingresa como parámetro del comando. Ej.: `git_set_origin $tokenName`
 * **inst**: Instala uno o más paquetes en Arch Linux, verificando automáticamente si se encuentra en los repositorios oficiales o en la AUR.
     * Se puede usar `yay -S` directamente.
 * **jest**: Crea los archivos de test de componentes para usar en el framework de React.js **Jest**.
