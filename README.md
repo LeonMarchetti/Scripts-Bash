@@ -30,6 +30,7 @@ Scripts escritos en Bash.
 * **project**: Abre pestañas de una terminal para ejecutar varios comandos a la vez.
 * **regex-test**: Prueba de expresiones regulares, desde un archivo.
 * **subdir**: Calcula el tamaño recursivo de cada archivo y subdirectorio en el directorio indicado.
+* **toggle_mute**: Silencia la ventana activa con PulseAudio.
 * **touchpad**: Activa/desactiva el touchpad.
 * **wifi**: Wrapper para `wifi-menu` indicando la interfaz y al terminar el programa consultar la dirección IP resultante.
 * **ydl**: Wrapper para `youtube-dl`, para obtener el audio en formato MP3 de un video.
