@@ -23,6 +23,7 @@ Scripts escritos en Bash.
     * Se puede usar `yay -S` directamente.
 * **jest**: Crea los archivos de test de componentes para usar en el framework de React.js **Jest**.
 * **log**: Script simple para hacer logging.
+* **nogba.sh**: Ejecuta el emulador No$gba.
 * **npm-init**: Inicia un proyecto npm con algunas configuraciones iniciales.
 * **pass**: Generador de contraseñas.
 * **pip-outdated**: Wrapper de Pip para detectar paquetes de Python obsoletos y que no estén instalados por Pacman (Arch Linux).
